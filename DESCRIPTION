@@ -1,0 +1,22 @@
+Package: nursing.licenses
+Title: What the Package Does (One Line, Title Case)
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Austin",
+           family = "Fast",
+           role = c("aut", "cre"),
+           email = "afast@npr.org",
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: What the package does (one paragraph).
+License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+    license
+Imports: 
+  tidyverse (>= 1.3.0),
+  janitor (>= 2.1.0),
+  httr (>= 1.4.2),
+  rvest (>= 0.3.6),
+  Lubridate (>= 1.7.9.2)
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
