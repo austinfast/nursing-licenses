@@ -3,6 +3,7 @@ library(janitor)
 library(httr)
 library(rvest)
 library(lubridate)
+library(xml2)
 
 #Set time zone to save files with correct date
 Sys.setenv(TZ="EST")
@@ -10,9 +11,9 @@ Sys.setenv(TZ="EST")
 #Pull in AzBN numbers
 url <- "https://www.azbn.gov"
 
-azbn <- read_html (url) 
+azbn <- read_html (url)
 azbn2 <- azbn %>%
-  html_nodes (xpath='//*[@id="block-nursestats-2"]/div/div/div/div') 
+  html_nodes (xpath='//*[@id="block-nursestats-2"]/div/div/div/div')
 
 azbn2 %>% html_nodes("ul") -> uls
 az_df <- data.frame()
@@ -22,7 +23,7 @@ for (ul in uls) {
   count <- parse_number(text)
   tmpdf <- data.frame(type,count) %>%
     add_column (archive_date = Sys.Date())
-  az_df <- rbind(az_df,tmpdf) 
+  az_df <- rbind(az_df,tmpdf)
 }
 
 #write AzBN license details
@@ -37,8 +38,8 @@ map_rn <- read_html(url1) %>%
 last_updated_rn = gsub(".*Last updated\\(", '', map_rn)
 last_updated_rn = mdy( gsub("\\).*", '', last_updated_rn) )
 
-#Read FusionChart data pulled from XML URL in map above  
-map2_rn <- read_xml("https://www.ncsbn.org/Aggregate-RNActiveLicensesMap.xml") 
+#Read FusionChart data pulled from XML URL in map above
+map2_rn <- xml2::read_xml("https://www.ncsbn.org/Aggregate-RNActiveLicensesMap.xml")
 
 counts_rn <- map2_rn %>%
   xml_nodes('entity') %>%
@@ -66,8 +67,8 @@ map_lpn <- read_html(url2) %>%
 last_updated_lpn = gsub(".*Last updated\\(", '', map_lpn)
 last_updated_lpn = mdy( gsub("\\).*", '', last_updated_lpn) )
 
-#Read FusionChart data pulled from XML URL in map above  
-map2_lpn <- read_xml("https://www.ncsbn.org/Aggregate-LPNActiveLicensesMap.xml") 
+#Read FusionChart data pulled from XML URL in map above
+map2_lpn <- xml2::read_xml("https://www.ncsbn.org/Aggregate-LPNActiveLicensesMap.xml")
 
 counts_lpn <- map2_lpn %>%
   xml_nodes('entity') %>%
