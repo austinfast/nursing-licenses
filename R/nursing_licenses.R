@@ -26,7 +26,7 @@ for (ul in uls) {
 }
 
 #write AzBN license details
-write_csv (az_df, paste0("AzBN scrapes/AzBN_", Sys.Date(), ".csv"))
+write_csv (az_df, paste0("AzBN_scrapes/AzBN_", Sys.Date(), ".csv"))
 
 #Scrape active nursing license data from National Council of State Boards of Nursing
 
@@ -57,7 +57,7 @@ df_rn <- data.frame(states_rn, counts_rn) %>%
           updated_date = last_updated_rn,
           scrape_date = Sys.Date())
 
-write_csv(df_rn, paste0("NCSBN scrapes/RN_scrape_", Sys.Date(), ".csv"))
+write_csv(df_rn, paste0("NCSBN_scrapes/RN_scrape_", Sys.Date(), ".csv"))
 
 #Scrape LPN data from https://www.ncsbn.org/6162.htm
 url2 <- "https://www.ncsbn.org/Aggregate-LPNActiveLicensesMap.html"
@@ -86,4 +86,4 @@ df_lpn <- data.frame(states_lpn, counts_lpn) %>%
           updated_date = last_updated_lpn,
           scrape_date = Sys.Date())
 
-write_csv(df_lpn, paste0("NCSBN scrapes/LPN_scrape_", Sys.Date(), ".csv"))
+write_csv(df_lpn, paste0("NCSBN_scrapes/LPN_scrape_", Sys.Date(), ".csv"))
