@@ -90,3 +90,33 @@ df_lpn <- data.frame(states_lpn, counts_lpn) %>%
   rename (state = states_lpn)
 
 write_csv(df_lpn, paste0("NCSBN_scrapes/LPN_scrape_", Sys.Date(), ".csv"))
+
+#Scrape ALL license data from https://www.ncsbn.org/Aggregate-AllActiveLicensesMap.html
+url3 <- "https://www.ncsbn.org/Aggregate-AllActiveLicensesMap.html"
+map_all <- read_html(url3) %>%
+  html_text()
+last_updated_all = gsub(".*Last updated\\(", '', map_all)
+last_updated_all = mdy( gsub("\\).*", '', last_updated_all) )
+
+#Read FusionChart data pulled from XML URL in map above
+map_all <- read_xml("https://www.ncsbn.org/Aggregate-AllActiveLicensesMap.xml")
+
+counts_all <- map_all %>%
+  xml_nodes('entity') %>%
+  xml_attr('value')
+
+states_all <- map_all %>%
+  xml_nodes('entity') %>%
+  xml_attr('toolText') %>%
+  str_remove_all("[0-9]+") %>%
+  str_remove_all(",") %>%
+  str_squish()
+
+df_all <- data.frame(states_all, counts_all) %>%
+  distinct(states_all, counts_all) %>% #remove repeat WV/CA
+  mutate (counts_all = as.numeric(counts_all),
+          updated_date = last_updated_all,
+          scrape_date = Sys.Date()) %>%
+  rename (state = states_all)
+
+write_csv(df_all, paste0("NCSBN scrapes/ALL_scrape_", Sys.Date(), ".csv"))
