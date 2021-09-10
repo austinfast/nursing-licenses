@@ -56,7 +56,8 @@ df_rn <- data.frame(states_rn, counts_rn) %>%
   distinct(states_rn, counts_rn) %>% #remove repeat WV/CA
   mutate (counts_rn = as.numeric(counts_rn),
           updated_date = last_updated_rn,
-          scrape_date = Sys.Date())
+          scrape_date = Sys.Date()) %>%
+  rename (state = states_rn)
 
 write_csv(df_rn, paste0("NCSBN_scrapes/RN_scrape_", Sys.Date(), ".csv"))
 
@@ -85,6 +86,7 @@ df_lpn <- data.frame(states_lpn, counts_lpn) %>%
   distinct(states_lpn, counts_lpn) %>% #remove repeat WV/CA
   mutate (counts_lpn = as.numeric(counts_lpn),
           updated_date = last_updated_lpn,
-          scrape_date = Sys.Date())
+          scrape_date = Sys.Date()) %>%
+  rename (state = states_lpn)
 
 write_csv(df_lpn, paste0("NCSBN_scrapes/LPN_scrape_", Sys.Date(), ".csv"))
