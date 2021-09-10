@@ -117,6 +117,12 @@ df_all <- data.frame(states_all, counts_all) %>%
   mutate (counts_all = as.numeric(counts_all),
           updated_date = last_updated_all,
           scrape_date = Sys.Date()) %>%
-  rename (state = states_all)
+  rename (state = states_all) %>%
+  filter (!(state %in% c("CALIFORNIA-RN", "CALIFORNIA-VN", "LOUISIANA-PN", "LOUISIANA-RN", "WEST VIRGINIA-RN", "WEST VIRGINIA-PN", "TOTALS"))) %>%
+  mutate (state = case_when (
+    str_detect(state, "^CALIF") ~ "CALIFORNIA",
+    str_detect(state, "^WEST V") ~ "WEST VIRGINIA",
+    str_detect(state, "^LOUIS") ~ "LOUISIANA",
+    TRUE ~ state))
 
-write_csv(df_all, paste0("NCSBN scrapes/ALL_scrape_", Sys.Date(), ".csv"))
+write_csv(df_all, paste0("NCSBN_scrapes/ALL_scrape_", Sys.Date(), ".csv"))
