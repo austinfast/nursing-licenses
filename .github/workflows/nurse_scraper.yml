@@ -6,7 +6,7 @@ on:
   push:
     branches: main
   schedule:
-    - cron:  '00 22 * * *'
+    - cron:  '59 23 * * *'
 
 jobs:
   generate-data:
