@@ -126,3 +126,10 @@ df_all <- data.frame(states_all, counts_all) %>%
     TRUE ~ state))
 
 write_csv(df_all, paste0("NCSBN_scrapes/ALL_scrape_", Sys.Date(), ".csv"))
+
+#Save LPNs to Archive.org
+lpn_page <- html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-LPNActiveLicensesTable.pdf")
+print (lpn_page$response$status_code)
+#Save RNs to Archive.org
+rn_page <- html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf")
+print (rn_page$response$status_code)
