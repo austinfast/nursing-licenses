@@ -155,8 +155,8 @@ il_page <- html_session("https://web.archive.org/save/https://online-dfpr.microp
 print (il_page$response$status_code)
 
 #Save Missouri processing times to Archive.org
-mo_page <- html_session("https://www.pr.mo.gov/nursing.asp")
-print (mo_page$response$status_code)
+#mo_page <- html_session("https://www.pr.mo.gov/nursing.asp")
+#print (mo_page$response$status_code)
 
 #Save Nevada processing times to Archive.org
 nv_page <- html_session("https://web.archive.org/save/https://nevadanursingboard.org/covid-19-resource-and-information/")
