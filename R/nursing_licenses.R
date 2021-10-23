@@ -127,9 +127,49 @@ df_all <- data.frame(states_all, counts_all) %>%
 
 write_csv(df_all, paste0("NCSBN_scrapes/ALL_scrape_", Sys.Date(), ".csv"))
 
-#Save LPNs to Archive.org
+#Screenshot nurse board websites to Archive.org
+#Save NCSBN LPN counts
 lpn_page <- html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-LPNActiveLicensesTable.pdf")
 print (lpn_page$response$status_code)
-#Save RNs to Archive.org
+#Save NCSBN RN counts
 rn_page <- html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf")
 print (rn_page$response$status_code)
+
+#Save Calif. processing times to Archive.org
+ca_page <- html_session("https://web.archive.org/save/https://www.rn.ca.gov/times.shtml")
+print (ca_page$response$status_code)
+
+#Save DC processing times to Archive.org
+dc_page <- html_session("https://web.archive.org/save/https://dchealth.dc.gov/bon")
+print (dc_page$response$status_code)
+
+#Save Ga1 processing times to Archive.org
+ga_page1 <- html_session("https://web.archive.org/save/https://sos.ga.gov/index.php/licensing/plb/45/faq")
+print (ga_page1$response$status_code)
+#Save Ga2 processing times to Archive.org
+ga_page2 <- html_session("https://web.archive.org/save/https://sos.ga.gov/index.php/licensing/plb/45")
+print (ga_page2$response$status_code)
+
+#Save Illinois processing times to Archive.org
+il_page <- html_session("https://web.archive.org/save/https://online-dfpr.micropact.com")
+print (il_page$response$status_code)
+
+#Save Missouri processing times to Archive.org
+mo_page <- html_session("https://www.pr.mo.gov/nursing.asp")
+print (mo_page$response$status_code)
+
+#Save Nevada processing times to Archive.org
+nv_page <- html_session("https://web.archive.org/save/https://nevadanursingboard.org/covid-19-resource-and-information/")
+print (nv_page$response$status_code)
+
+#Save New York processing times to Archive.org
+ny_page <- html_session("http://www.op.nysed.gov/prof/nurse/")
+print (ny_page$response$status_code)
+
+#Save RI processing times to Archive.org
+ri_page <- html_session("https://web.archive.org/save/https://health.ri.gov/licenses/")
+print (ri_page$response$status_code)
+
+#Save Wash. processing times to Archive.org
+wa_page <- html_session("https://web.archive.org/save/https://www.doh.wa.gov/AboutUs/ContactUs")
+print (wa_page$response$status_code)
