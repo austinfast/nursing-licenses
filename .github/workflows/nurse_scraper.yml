@@ -3,8 +3,8 @@ name: scrape_ncsbn
 
 # Controls when the action will run.
 on:
-  #push:
-  #  branches: main
+  push:
+    branches: main
   schedule:
     - cron:  '59 23 * * *'
 
