@@ -159,8 +159,8 @@ print (il_page$response$status_code)
 #print (mo_page$response$status_code)
 
 #Save Nevada processing times to Archive.org
-nv_page <- html_session("https://web.archive.org/save/https://nevadanursingboard.org/covid-19-resource-and-information/")
-print (nv_page$response$status_code)
+#nv_page <- html_session("https://web.archive.org/save/https://nevadanursingboard.org/covid-19-resource-and-information/")
+#print (nv_page$response$status_code)
 
 #Save New York processing times to Archive.org
 ny_page <- html_session("http://www.op.nysed.gov/prof/nurse/")
