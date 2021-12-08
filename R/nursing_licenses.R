@@ -130,10 +130,12 @@ write_csv(df_all, paste0("NCSBN_scrapes/ALL_scrape_", Sys.Date(), ".csv"))
 #Screenshot nurse board websites to Archive.org
 #Save NCSBN LPN counts
 lpn_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-LPNActiveLicensesTable.pdf"))
+Sys.sleep(1)
 if(!inherits(lpn_page, "try-error")){
   print (lpn_page$response$status_code)
 } else{
   #Try again
+  Sys.sleep(1)
   lpn_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
   #Move on if fail second time
   if(!inherits(lpn_page, "try-error")){
@@ -145,10 +147,12 @@ if(!inherits(lpn_page, "try-error")){
 
 #Save NCSBN RN counts
 rn_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+Sys.sleep(1)
 if(!inherits(rn_page, "try-error")){
   print (rn_page$response$status_code)
 } else{
-  #Try again
+  #Try again 
+  Sys.sleep(1)
   rn_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
   #Move on if fail second time
   if(!inherits(rn_page, "try-error")){
@@ -160,10 +164,12 @@ if(!inherits(rn_page, "try-error")){
 
 #Save Calif. processing times to Archive.org
 ca_page <- html_session("https://web.archive.org/save/https://www.rn.ca.gov/times.shtml")
+Sys.sleep(1) 
 if(!inherits(ca_page, "try-error")){
   print (ca_page$response$status_code)
 } else{
   #Try again
+  Sys.sleep(1) 
   ca_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
   #Move on if fail second time
   if(!inherits(ca_page, "try-error")){
@@ -175,10 +181,12 @@ if(!inherits(ca_page, "try-error")){
 
 #Save DC processing times to Archive.org
 dc_page <- html_session("https://web.archive.org/save/https://dchealth.dc.gov/bon")
+  Sys.sleep(1)
 if(!inherits(dc_page, "try-error")){
   print (dc_page$response$status_code)
 } else{
   #Try again
+  Sys.sleep(1)
   dc_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
   #Move on if fail second time
   if(!inherits(dc_page, "try-error")){
@@ -190,10 +198,12 @@ if(!inherits(dc_page, "try-error")){
 
 #Save Ga1 processing times to Archive.org
 ga_page1 <- html_session("https://web.archive.org/save/https://sos.ga.gov/index.php/licensing/plb/45/faq")
+  Sys.sleep(1)
 if(!inherits(ga_page1, "try-error")){
   print (ga_page1$response$status_code)
 } else{
   #Try again
+  Sys.sleep(1)
   ga_page1 <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
   #Move on if fail second time
   if(!inherits(ga_page1, "try-error")){
@@ -205,10 +215,12 @@ if(!inherits(ga_page1, "try-error")){
 
 #Save Ga2 processing times to Archive.org
 ga_page2 <- html_session("https://web.archive.org/save/https://sos.ga.gov/index.php/licensing/plb/45")
+  Sys.sleep(1)
 if(!inherits(ga_page2, "try-error")){
   print (ga_page2$response$status_code)
 } else{
   #Try again
+  Sys.sleep(1)
   ga_page2 <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
   #Move on if fail second time
   if(!inherits(ga_page2, "try-error")){
@@ -220,10 +232,12 @@ if(!inherits(ga_page2, "try-error")){
 
 #Save Illinois processing times to Archive.org
 il_page <- html_session("https://web.archive.org/save/https://online-dfpr.micropact.com")
+  Sys.sleep(1)
 if(!inherits(il_page, "try-error")){
   print (il_page$response$status_code)
 } else{
   #Try again
+  Sys.sleep(1)
   il_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
   #Move on if fail second time
   if(!inherits(il_page, "try-error")){
@@ -235,10 +249,12 @@ if(!inherits(il_page, "try-error")){
 
 #Save Missouri processing times to Archive.org
 mo_page <- html_session("https://www.pr.mo.gov/nursing.asp")
+  Sys.sleep(1)
 if(!inherits(mo_page, "try-error")){
   print (mo_page$response$status_code)
 } else{
   #Try again
+  Sys.sleep(1)
   mo_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
   #Move on if fail second time
   if(!inherits(mo_page, "try-error")){
@@ -250,10 +266,12 @@ if(!inherits(mo_page, "try-error")){
 
 #Save Nevada processing times to Archive.org
 nv_page <- html_session("https://web.archive.org/save/https://nevadanursingboard.org/covid-19-resource-and-information/")
+  Sys.sleep(1)
 if(!inherits(nv_page, "try-error")){
   print (nv_page$response$status_code)
 } else{
   #Try again
+  Sys.sleep(1)
   nv_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
   #Move on if fail second time
   if(!inherits(nv_page, "try-error")){
@@ -265,10 +283,12 @@ if(!inherits(nv_page, "try-error")){
 
 #Save New York processing times to Archive.org
 ny_page <- html_session("http://www.op.nysed.gov/prof/nurse/")
+  Sys.sleep(1)
 if(!inherits(ny_page, "try-error")){
   print (ny_page$response$status_code)
 } else{
   #Try again
+  Sys.sleep(1)
   ny_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
   #Move on if fail second time
   if(!inherits(ny_page, "try-error")){
@@ -280,10 +300,12 @@ if(!inherits(ny_page, "try-error")){
 
 #Save RI processing times to Archive.org
 ri_page <- html_session("https://web.archive.org/save/https://health.ri.gov/licenses/")
+  Sys.sleep(1)
 if(!inherits(ri_page, "try-error")){
   print (ri_page$response$status_code)
 } else{
   #Try again
+  Sys.sleep(1)
   ri_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
   #Move on if fail second time
   if(!inherits(ri_page, "try-error")){
@@ -295,10 +317,12 @@ if(!inherits(ri_page, "try-error")){
 
 #Save Wash. processing times to Archive.org
 wa_page <- html_session("https://web.archive.org/save/https://www.doh.wa.gov/AboutUs/ContactUs")
+  Sys.sleep(1)
 if(!inherits(wa_page, "try-error")){
   print (wa_page$response$status_code)
 } else{
   #Try again
+  Sys.sleep(1)
   wa_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
   #Move on if fail second time
   if(!inherits(wa_page, "try-error")){
