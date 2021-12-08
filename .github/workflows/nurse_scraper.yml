@@ -59,10 +59,10 @@ jobs:
           remotes::install_deps(dependencies = TRUE)
         shell: Rscript {0}
         
-# Run R script
+# Run R script - NCSBN scrape
       - name: Scrape NCSBN + AzBN
         run: |
-          source("R/nursing_licenses.R")
+          source("R/nursing_licenses2.R")
         shell: Rscript {0} 
 
  # Add new files in data folder, commit along with other modified files, push
@@ -76,3 +76,9 @@ jobs:
         env:
           REPO_KEY: ${{secrets.GITHUB_TOKEN}}
           username: github-actions
+
+# Run R script - Archive.org screenshots
+      - name: Archive.org screenshots
+        run: |
+          source("R/nursing_licenses3.R")
+        shell: Rscript {0} 
