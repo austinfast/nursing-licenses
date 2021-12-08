@@ -128,23 +128,6 @@ if(!(il_page$response$status_code %in% c("520", "429"))){
   }
 }
 
-#Save Missouri processing times to Archive.org
-mo_page <- html_session("https://www.pr.mo.gov/nursing.asp")
-  Sys.sleep(1)
-if(!(mo_page$response$status_code %in% c("520", "429"))){
-  print (mo_page$response$status_code)
-} else{
-  #Try again
-  Sys.sleep(1)
-  mo_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
-  #Move on if fail second time
-  if(!(mo_page$response$status_code %in% c("520", "429"))){
-    print (mo_page$response$status_code)
-  } else{
-    print ("ALERT: mo_page failed")
-  }
-}
-
 #Save Nevada processing times to Archive.org
 nv_page <- html_session("https://web.archive.org/save/https://nevadanursingboard.org/covid-19-resource-and-information/")
   Sys.sleep(1)
@@ -212,3 +195,21 @@ if(!(wa_page$response$status_code %in% c("520", "429"))){
     print ("ALERT: wa_page failed")
   }
 }
+
+#Save Missouri processing times to Archive.org
+  mo_page <- html_session("https://www.pr.mo.gov/nursing.asp")
+  Sys.sleep(1)
+  if(!(mo_page$response$status_code %in% c("520", "429"))){
+    print (mo_page$response$status_code)
+  } else{
+    #Try again
+    Sys.sleep(1)
+    mo_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+    #Move on if fail second time
+    if(!(mo_page$response$status_code %in% c("520", "429"))){
+      print (mo_page$response$status_code)
+    } else{
+      print ("ALERT: mo_page failed")
+    }
+  }
+
