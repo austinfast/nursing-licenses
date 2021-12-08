@@ -129,47 +129,181 @@ write_csv(df_all, paste0("NCSBN_scrapes/ALL_scrape_", Sys.Date(), ".csv"))
 
 #Screenshot nurse board websites to Archive.org
 #Save NCSBN LPN counts
-lpn_page <- html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-LPNActiveLicensesTable.pdf")
-print (lpn_page$response$status_code)
+lpn_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-LPNActiveLicensesTable.pdf"))
+if(!inherits(lpn_page, "try-error")){
+  print (lpn_page$response$status_code)
+} else{
+  #Try again
+  lpn_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+  #Move on if fail second time
+  if(!inherits(lpn_page, "try-error")){
+    print (lpn_page$response$status_code)
+  } else{
+    print ("ALERT: lpn_page failed")
+  }
+}
+
 #Save NCSBN RN counts
-rn_page <- html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf")
-print (rn_page$response$status_code)
+rn_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+if(!inherits(rn_page, "try-error")){
+  print (rn_page$response$status_code)
+} else{
+  #Try again
+  rn_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+  #Move on if fail second time
+  if(!inherits(rn_page, "try-error")){
+    print (rn_page$response$status_code)
+  } else{
+  print ("ALERT: rn_page failed")
+  }
+}
 
 #Save Calif. processing times to Archive.org
 ca_page <- html_session("https://web.archive.org/save/https://www.rn.ca.gov/times.shtml")
-print (ca_page$response$status_code)
+if(!inherits(ca_page, "try-error")){
+  print (ca_page$response$status_code)
+} else{
+  #Try again
+  ca_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+  #Move on if fail second time
+  if(!inherits(ca_page, "try-error")){
+    print (ca_page$response$status_code)
+  } else{
+    print ("ALERT: ca_page failed")
+  }
+}
 
 #Save DC processing times to Archive.org
 dc_page <- html_session("https://web.archive.org/save/https://dchealth.dc.gov/bon")
-print (dc_page$response$status_code)
+if(!inherits(dc_page, "try-error")){
+  print (dc_page$response$status_code)
+} else{
+  #Try again
+  dc_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+  #Move on if fail second time
+  if(!inherits(dc_page, "try-error")){
+    print (dc_page$response$status_code)
+  } else{
+    print ("ALERT: dc_page failed")
+  }
+}
 
 #Save Ga1 processing times to Archive.org
 ga_page1 <- html_session("https://web.archive.org/save/https://sos.ga.gov/index.php/licensing/plb/45/faq")
-print (ga_page1$response$status_code)
+if(!inherits(ga_page1, "try-error")){
+  print (ga_page1$response$status_code)
+} else{
+  #Try again
+  ga_page1 <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+  #Move on if fail second time
+  if(!inherits(ga_page1, "try-error")){
+    print (ga_page1$response$status_code)
+  } else{
+    print ("ALERT: ga_page1 failed")
+  }
+}
+
 #Save Ga2 processing times to Archive.org
 ga_page2 <- html_session("https://web.archive.org/save/https://sos.ga.gov/index.php/licensing/plb/45")
-print (ga_page2$response$status_code)
+if(!inherits(ga_page2, "try-error")){
+  print (ga_page2$response$status_code)
+} else{
+  #Try again
+  ga_page2 <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+  #Move on if fail second time
+  if(!inherits(ga_page2, "try-error")){
+    print (ga_page2$response$status_code)
+  } else{
+    print ("ALERT: ga_page2 failed")
+  }
+}
 
 #Save Illinois processing times to Archive.org
 il_page <- html_session("https://web.archive.org/save/https://online-dfpr.micropact.com")
-print (il_page$response$status_code)
+if(!inherits(il_page, "try-error")){
+  print (il_page$response$status_code)
+} else{
+  #Try again
+  il_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+  #Move on if fail second time
+  if(!inherits(il_page, "try-error")){
+    print (il_page$response$status_code)
+  } else{
+    print ("ALERT: il_page failed")
+  }
+}
 
 #Save Missouri processing times to Archive.org
-#mo_page <- html_session("https://www.pr.mo.gov/nursing.asp")
-#print (mo_page$response$status_code)
+mo_page <- html_session("https://www.pr.mo.gov/nursing.asp")
+if(!inherits(mo_page, "try-error")){
+  print (mo_page$response$status_code)
+} else{
+  #Try again
+  mo_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+  #Move on if fail second time
+  if(!inherits(mo_page, "try-error")){
+    print (mo_page$response$status_code)
+  } else{
+    print ("ALERT: mo_page failed")
+  }
+}
 
 #Save Nevada processing times to Archive.org
-#nv_page <- html_session("https://web.archive.org/save/https://nevadanursingboard.org/covid-19-resource-and-information/")
-#print (nv_page$response$status_code)
+nv_page <- html_session("https://web.archive.org/save/https://nevadanursingboard.org/covid-19-resource-and-information/")
+if(!inherits(nv_page, "try-error")){
+  print (nv_page$response$status_code)
+} else{
+  #Try again
+  nv_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+  #Move on if fail second time
+  if(!inherits(nv_page, "try-error")){
+    print (nv_page$response$status_code)
+  } else{
+    print ("ALERT: nv_page failed")
+  }
+}
 
 #Save New York processing times to Archive.org
 ny_page <- html_session("http://www.op.nysed.gov/prof/nurse/")
-print (ny_page$response$status_code)
+if(!inherits(ny_page, "try-error")){
+  print (ny_page$response$status_code)
+} else{
+  #Try again
+  ny_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+  #Move on if fail second time
+  if(!inherits(ny_page, "try-error")){
+    print (ny_page$response$status_code)
+  } else{
+    print ("ALERT: ny_page failed")
+  }
+}
 
 #Save RI processing times to Archive.org
 ri_page <- html_session("https://web.archive.org/save/https://health.ri.gov/licenses/")
-print (ri_page$response$status_code)
+if(!inherits(ri_page, "try-error")){
+  print (ri_page$response$status_code)
+} else{
+  #Try again
+  ri_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+  #Move on if fail second time
+  if(!inherits(ri_page, "try-error")){
+    print (ri_page$response$status_code)
+  } else{
+    print ("ALERT: ri_page failed")
+  }
+}
 
 #Save Wash. processing times to Archive.org
 wa_page <- html_session("https://web.archive.org/save/https://www.doh.wa.gov/AboutUs/ContactUs")
-print (wa_page$response$status_code)
+if(!inherits(wa_page, "try-error")){
+  print (wa_page$response$status_code)
+} else{
+  #Try again
+  wa_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+  #Move on if fail second time
+  if(!inherits(wa_page, "try-error")){
+    print (wa_page$response$status_code)
+  } else{
+    print ("ALERT: wa_page failed")
+  }
+}
