@@ -51,7 +51,7 @@ if(!(ca_page$response$status_code %in% c("520", "429", "523"))){
 } else{
   #Try again
   Sys.sleep(1)
-  ca_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+  ca_page <- try(html_session("https://web.archive.org/save/https://www.rn.ca.gov/times.shtml"))
   #Move on if fail second time
   if(!(ca_page$response$status_code %in% c("520", "429", "523"))){
     print (ca_page$response$status_code)
@@ -68,7 +68,7 @@ if(!(dc_page$response$status_code %in% c("520", "429", "523"))){
 } else{
   #Try again
   Sys.sleep(1)
-  dc_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+  dc_page <- try(html_session("https://web.archive.org/save/https://dchealth.dc.gov/bon"))
   #Move on if fail second time
   if(!(dc_page$response$status_code %in% c("520", "429", "523"))){
     print (dc_page$response$status_code)
@@ -85,7 +85,7 @@ if(!(ga_page1$response$status_code %in% c("520", "429", "523"))){
 } else{
   #Try again
   Sys.sleep(1)
-  ga_page1 <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+  ga_page1 <- try(html_session("https://web.archive.org/save/https://sos.ga.gov/index.php/licensing/plb/45/faq"))
   #Move on if fail second time
   if(!(ga_page1$response$status_code %in% c("520", "429", "523"))){
     print (ga_page1$response$status_code)
@@ -102,7 +102,7 @@ if(!(ga_page2$response$status_code %in% c("520", "429", "523"))){
 } else{
   #Try again
   Sys.sleep(1)
-  ga_page2 <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+  ga_page2 <- try(html_session("https://web.archive.org/save/https://sos.ga.gov/index.php/licensing/plb/45"))
   #Move on if fail second time
   if(!(ga_page2$response$status_code %in% c("520", "429", "523"))){
     print (ga_page2$response$status_code)
@@ -119,7 +119,7 @@ if(!(il_page$response$status_code %in% c("520", "429", "523"))){
 } else{
   #Try again
   Sys.sleep(1)
-  il_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+  il_page <- try(html_session("https://web.archive.org/save/https://online-dfpr.micropact.com"))
   #Move on if fail second time
   if(!(il_page$response$status_code %in% c("520", "429", "523"))){
     print (il_page$response$status_code)
@@ -127,6 +127,23 @@ if(!(il_page$response$status_code %in% c("520", "429", "523"))){
     print ("ALERT: il_page failed")
   }
 }
+
+#Save Kansas processing note to Archive.org
+  il_page <- html_session("https://web.archive.org/save/https://ksbn.kansas.gov")
+  Sys.sleep(1)
+  if(!(il_page$response$status_code %in% c("520", "429", "523"))){
+    print (il_page$response$status_code)
+  } else{
+    #Try again
+    Sys.sleep(1)
+    il_page <- try(html_session("https://web.archive.org/save/https://ksbn.kansas.gov"))
+    #Move on if fail second time
+    if(!(il_page$response$status_code %in% c("520", "429", "523"))){
+      print (il_page$response$status_code)
+    } else{
+      print ("ALERT: il_page failed")
+    }
+  }
 
 #Save Nevada processing times to Archive.org
 nv_page <- html_session("https://web.archive.org/save/https://nevadanursingboard.org/covid-19-resource-and-information/")
@@ -136,7 +153,7 @@ if(!(nv_page$response$status_code %in% c("520", "429", "523"))){
 } else{
   #Try again
   Sys.sleep(1)
-  nv_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+  nv_page <- try(html_session("https://web.archive.org/save/https://nevadanursingboard.org/covid-19-resource-and-information/"))
   #Move on if fail second time
   if(!(nv_page$response$status_code %in% c("520", "429", "523"))){
     print (nv_page$response$status_code)
@@ -153,7 +170,7 @@ if(!(ny_page$response$status_code %in% c("520", "429", "523"))){
 } else{
   #Try again
   Sys.sleep(1)
-  ny_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+  ny_page <- try(html_session("https://web.archive.org/save/http://www.op.nysed.gov/prof/nurse/"))
   #Move on if fail second time
   if(!(ny_page$response$status_code %in% c("520", "429", "523"))){
     print (ny_page$response$status_code)
@@ -170,7 +187,7 @@ if(!(ri_page$response$status_code %in% c("520", "429", "523"))){
 } else{
   #Try again
   Sys.sleep(1)
-  ri_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+  ri_page <- try(html_session("https://web.archive.org/save/https://health.ri.gov/licenses/"))
   #Move on if fail second time
   if(!(ri_page$response$status_code %in% c("520", "429", "523"))){
     print (ri_page$response$status_code)
@@ -187,7 +204,7 @@ if(!(wa_page$response$status_code %in% c("520", "429", "523"))){
 } else{
   #Try again
   Sys.sleep(1)
-  wa_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+  wa_page <- try(html_session("https://web.archive.org/save/https://www.doh.wa.gov/AboutUs/ContactUs"))
   #Move on if fail second time
   if(!(wa_page$response$status_code %in% c("520", "429", "523"))){
     print (wa_page$response$status_code)
@@ -197,14 +214,14 @@ if(!(wa_page$response$status_code %in% c("520", "429", "523"))){
 }
 
 #Save Missouri processing times to Archive.org
-  mo_page <- html_session("https://www.pr.mo.gov/nursing.asp")
+  mo_page <- html_session("https://web.archive.org/save/https://www.pr.mo.gov/nursing.asp")
   Sys.sleep(1)
   if(!(mo_page$response$status_code %in% c("520", "429", "523"))){
     print (mo_page$response$status_code)
   } else{
     #Try again
     Sys.sleep(1)
-    mo_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf"))
+    mo_page <- try(html_session("https://web.archive.org/save/https://www.pr.mo.gov/nursing.asp"))
     #Move on if fail second time
     if(!(mo_page$response$status_code %in% c("520", "429", "523"))){
       print (mo_page$response$status_code)
