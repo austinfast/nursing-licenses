@@ -78,7 +78,7 @@ jobs:
           username: github-actions
 
 # Run R script - Archive.org screenshots
-      - name: Archive.org screenshots
-        run: |
-          source("R/nursing_licenses3.R")
-        shell: Rscript {0} 
+#      - name: Archive.org screenshots
+#        run: |
+#          source("R/nursing_licenses3.R")
+#        shell: Rscript {0} 
