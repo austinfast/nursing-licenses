@@ -8,6 +8,44 @@ library(xml2)
 #Set time zone to save files with correct date
 Sys.setenv(TZ="America/Los_Angeles")
 
+urls <- c("https://www.ncsbn.org/Aggregate-LPNActiveLicensesTable.pdf",
+          "https://www.ncsbn.org/Aggregate-RNActiveLicensesTable.pdf",
+          "https://www.rn.ca.gov/times.shtml",
+          "https://dchealth.dc.gov/bon",
+          "https://sos.ga.gov/index.php/licensing/plb/45/faq",
+          "https://sos.ga.gov/index.php/licensing/plb/45",
+          "https://online-dfpr.micropact.com",
+          "https://ksbn.kansas.gov",
+          "https://nevadanursingboard.org/covid-19-resource-and-information/",
+          "http://www.op.nysed.gov/prof/nurse/",
+          "https://health.ri.gov/licenses/",
+          "https://www.doh.wa.gov/AboutUs/ContactUs",
+          "https://www.pr.mo.gov/nursing.asp")
+
+#for (i in seq_along(urls)){
+for (url in urls){
+  #i <- 1
+  #url <- urls[i]
+  link <- paste0 ("https://web.archive.org/save/", url)
+  page <- try(html_session(link))
+  Sys.sleep(5)
+  if(page$response$status_code %in% c("520", "429", "523") | inherits(page, "try-error")){
+    #Try again
+    Sys.sleep(1)
+    page <- try(html_session(link))
+    Sys.sleep(5)
+    #Move on if fail second time
+    if(page$response$status_code %in% c("520", "429", "523") | inherits(page, "try-error")){
+      print (paste0("ALERT: ", url, " failed."))
+    } else{
+      print (paste0(url, " -- ", page$response$status_code))
+    }
+  } else{
+    print (paste0(url, " -- ", page$response$status_code))
+  }
+}
+
+
 #Screenshot nurse board websites to Archive.org
 #Save NCSBN LPN counts
 lpn_page <- try(html_session("https://web.archive.org/save/https://www.ncsbn.org/Aggregate-LPNActiveLicensesTable.pdf"))
@@ -21,10 +59,10 @@ if(lpn_page$response$status_code %in% c("520", "429", "523") | inherits(lpn_page
   if(lpn_page$response$status_code %in% c("520", "429", "523") | inherits(lpn_page, "try-error")){
     print ("ALERT: lpn_page failed")
   } else{
-    print (lpn_page$response$status_code)
+    print (paste0("LPN page: ", lpn_page$response$status_code))
   }
 } else{
-  print (lpn_page$response$status_code)
+  print (paste0("LPN page: ", lpn_page$response$status_code))
 }
 
 #Save NCSBN RN counts
@@ -39,10 +77,10 @@ if(rn_page$response$status_code %in% c("520", "429", "523") | inherits(rn_page, 
   if(rn_page$response$status_code %in% c("520", "429", "523") | inherits(rn_page, "try-error")){
     print ("ALERT: rn_page failed")
   } else{
-    print (rn_page$response$status_code)
+    print (paste0("RN page: ", rn_page$response$status_code))
   }
 } else{
-  print (rn_page$response$status_code)
+  print (paste0("RN page: ", rn_page$response$status_code))
 }
 
 #Save Calif. processing times to Archive.org
@@ -57,10 +95,10 @@ if(ca_page$response$status_code %in% c("520", "429", "523") | inherits(ca_page, 
   if(ca_page$response$status_code %in% c("520", "429", "523") | inherits(ca_page, "try-error")){
     print ("ALERT: ca_page failed")
   } else{
-    print (ca_page$response$status_code)
+    print (paste0("CA page: ", ca_page$response$status_code))
   }
 } else{
-  print (ca_page$response$status_code)
+  print (paste0("CA page: ", ca_page$response$status_code))
 }
 
 #Save DC processing times to Archive.org
@@ -75,10 +113,10 @@ if(dc_page$response$status_code %in% c("520", "429", "523") | inherits(dc_page, 
   if(dc_page$response$status_code %in% c("520", "429", "523") | inherits(dc_page, "try-error")){
     print ("ALERT: dc_page failed")
   } else{
-    print (dc_page$response$status_code)
+    print (paste0("DC page: ", dc_page$response$status_code))
   }
 } else{
-  print (dc_page$response$status_code)
+  print (paste0("DC page: ", dc_page$response$status_code))
 }
 
 #Save Ga1 processing times to Archive.org
@@ -93,10 +131,10 @@ if(ga_page1$response$status_code %in% c("520", "429", "523") | inherits(ga_page1
   if(ga_page1$response$status_code %in% c("520", "429", "523") | inherits(ga_page1, "try-error")){
     print ("ALERT: ga_page1 failed")
   } else{
-    print (ga_page1$response$status_code)
+    print (paste0("GA1 page: ", ga_page1$response$status_code))
   }
 } else{
-  print (ga_page1$response$status_code)
+  print (paste0("GA1 page: ", ga_page1$response$status_code))
 }
 
 #Save Ga2 processing times to Archive.org
@@ -111,10 +149,10 @@ if(ga_page2$response$status_code %in% c("520", "429", "523") | inherits(ga_page2
   if(ga_page2$response$status_code %in% c("520", "429", "523") | inherits(ga_page2, "try-error")){
     print ("ALERT: ga_page2 failed")
   } else{
-    print (ga_page2$response$status_code)
+    print (paste0("GA2 page: ", ga_page2$response$status_code))
   }
 } else{
-  print (ga_page2$response$status_code)
+  print (paste0("GA2 page: ", ga_page2$response$status_code))
 }
 
 #Save Illinois processing times to Archive.org
@@ -129,10 +167,10 @@ if(il_page$response$status_code %in% c("520", "429", "523") | inherits(il_page, 
   if(il_page$response$status_code %in% c("520", "429", "523") | inherits(il_page, "try-error")){
     print ("ALERT: il_page failed")
   } else{
-    print (il_page$response$status_code)
+    print (paste0("IL page: ", il_page$response$status_code))
   }
 } else{
-  print (il_page$response$status_code)
+  print (paste0("IL page: ", il_page$response$status_code))
 }
 
 #Save Kansas processing note to Archive.org
@@ -147,10 +185,10 @@ if(il_page$response$status_code %in% c("520", "429", "523") | inherits(il_page, 
     if(ks_page$response$status_code %in% c("520", "429", "523") | inherits(ks_page, "try-error")){
       print ("ALERT: ks_page failed")
     } else{
-      print (ks_page$response$status_code)
+      print (paste0("KS page: ", ks_page$response$status_code))
     }
   } else{
-    print (ks_page$response$status_code)
+    print (paste0("KS page: ", ks_page$response$status_code))
   }
 
 #Save Nevada processing times to Archive.org
@@ -165,14 +203,14 @@ if(nv_page$response$status_code %in% c("520", "429", "523") | inherits(nv_page, 
   if(nv_page$response$status_code %in% c("520", "429", "523") | inherits(nv_page, "try-error")){
     print ("ALERT: nv_page failed")
   } else{
-    print (nv_page$response$status_code)
+    print (paste0("NV page: ", nv_page$response$status_code))
   }
 } else{
-  print (nv_page$response$status_code)
+  print (paste0("NV page: ", nv_page$response$status_code))
 }
 
 #Save New York processing times to Archive.org
-ny_page <- try(html_session("http://www.op.nysed.gov/prof/nurse/"))
+ny_page <- try(html_session("https://web.archive.org/save/http://www.op.nysed.gov/prof/nurse/"))
   Sys.sleep(5)
 if(ny_page$response$status_code %in% c("520", "429", "523") | inherits(ny_page, "try-error")){
   #Try again
@@ -219,10 +257,10 @@ if(wa_page$response$status_code %in% c("520", "429", "523") | inherits(wa_page, 
   if(wa_page$response$status_code %in% c("520", "429", "523") | inherits(wa_page, "try-error")){
     print ("ALERT: wa_page failed")
   } else{
-    print (wa_page$response$status_code)
+    print (paste0("WA page: ", wa_page$response$status_code))
   }
 } else{
-  print (wa_page$response$status_code)
+  print (paste0("WA page: ", wa_page$response$status_code))
 }
 
 #Save Missouri processing times to Archive.org
