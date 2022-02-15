@@ -5,18 +5,11 @@ date: "2/15/2022"
 output: html_document
 ---
 
-
 ```{r}
 #Load libraries 
 library(tidyverse)
-library(tidycensus)
-library(readxl)
 library(janitor)
 library(lubridate)
-library(rvest)
-library(rjson)
-library(httr)
-library(openxlsx)
 ```
 
 COVID-19 Reported Patient Impact and Hospital Capacity by State Timeseries
@@ -85,8 +78,11 @@ hospital4 <- hospital %>%
   #group_by (date, state) %>% #USE THIS TO GROUP BY DATE AND STATE INSTEAD OF NATIONAL RATE
   group_by (date) %>%
   select (date, state, critical_staffing_shortage_anticipated_within_week_yes, critical_staffing_shortage_anticipated_within_week_no, critical_staffing_shortage_anticipated_within_week_not_reported) %>%
+  #sum up three possible responses 
   summarize (total = sum(critical_staffing_shortage_anticipated_within_week_yes) + sum(critical_staffing_shortage_anticipated_within_week_no) + sum(critical_staffing_shortage_anticipated_within_week_not_reported),
+             #Of those that responded, calculate percent responding yes
           pct_yes = sum(critical_staffing_shortage_anticipated_within_week_yes) / (sum(critical_staffing_shortage_anticipated_within_week_yes) + sum(critical_staffing_shortage_anticipated_within_week_no)), 
+             #Calculate percent that responded
           pct_reporting = (sum(critical_staffing_shortage_anticipated_within_week_yes) + sum(critical_staffing_shortage_anticipated_within_week_no)) / total) %>%
   arrange (desc(date)) %>%
   filter (date > as.Date("2020-07-31"))
