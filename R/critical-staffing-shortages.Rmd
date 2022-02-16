@@ -18,6 +18,8 @@ https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Ca
 Pull historical data into R
 ```{r}
 hospital <- read_csv("https://healthdata.gov/api/views/g62h-syeh/rows.csv?accessType=DOWNLOAD")
+
+write_csv(hospital, paste0('hhs/scrapes/', format(Sys.time(), format="%Y-%m-%d-%H-%M"),'.csv'))
 ```
 
 
@@ -96,6 +98,8 @@ hospital4a <- hospital4 %>%
           #days_low_st_vax = RcppRoll::roll_sum(dplyr::lag(low_st_vax),14, fill=NA, align="right"),
           roll_avg = zoo::rollmean(pct_yes, k = 7, fill = NA, align = "right")* 100,
           roll_reporting = zoo::rollmean(pct_reporting, k = 7, fill = NA, align = "right")* 100) 
+          
+write_csv(hospital4a, paste0('hhs/calculated/', format(Sys.time(), format="%Y-%m-%d-%H-%M"),'.csv'))
 ```
 
 Graph national rate of hospitals anticipating a critical staffing shortage.
