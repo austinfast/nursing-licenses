@@ -1,0 +1,115 @@
+#Load libraries 
+library(tidyverse)
+library(janitor)
+library(lubridate)
+
+#COVID-19 Reported Patient Impact and Hospital Capacity by State Timeseries
+#https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Capa/g62h-syeh
+#Pull historical data into R
+hospital <- read_csv("https://healthdata.gov/api/views/g62h-syeh/rows.csv?accessType=DOWNLOAD")
+#Write raw data
+write_csv(hospital, paste0('hhs/scrapes/', format(Sys.time(), format="%Y-%m-%d-%H-%M"),'.csv'))
+
+#This calculates by state and date how many of the hospitals report a critical staffing shortage and how many of them responded.
+#Hospitals no longer have to report if they have a critical staffing shortage today, so the percent reporting figure has dropped sharply over the past month. 
+#Some states (e.g., Texas) had already been doing very poorly at reporting
+
+hospital2 <- hospital %>% 
+  group_by (date, state) %>%
+  select (date, state, critical_staffing_shortage_today_yes, critical_staffing_shortage_today_no, critical_staffing_shortage_today_not_reported) %>%
+  mutate (total = critical_staffing_shortage_today_yes + critical_staffing_shortage_today_no + critical_staffing_shortage_today_not_reported,
+          pct_yes = critical_staffing_shortage_today_yes / (critical_staffing_shortage_today_yes + critical_staffing_shortage_today_no), 
+          pct_reporting = (critical_staffing_shortage_today_yes + critical_staffing_shortage_today_no) / total)
+
+hospital2 %>%
+  filter (state == "TX") %>%
+  #filter (date > as.Date("2021-12-31")) %>%
+  ggplot (aes(x = date, 
+              y = pct_yes,
+              #fill = state
+              )) +
+    geom_line() 
+
+#This calculates a national rate by date of how many of the hospitals report a critical staffing shortage and how many of them responded.
+#Hospitals no longer have to report if they have a critical staffing shortage today, so the percent reporting figure has dropped sharply over the past month. 
+#Some states (e.g., Texas) had already been doing very poorly at reporting
+
+hospital3 <- hospital %>% 
+  group_by (date) %>%
+  select (date, state, critical_staffing_shortage_today_yes, critical_staffing_shortage_today_no, critical_staffing_shortage_today_not_reported) %>%
+  summarize (total = sum(critical_staffing_shortage_today_yes) + sum(critical_staffing_shortage_today_no) + sum(critical_staffing_shortage_today_not_reported),
+          pct_yes = sum(critical_staffing_shortage_today_yes) / (sum(critical_staffing_shortage_today_yes) + sum(critical_staffing_shortage_today_no)), 
+          pct_reporting = (sum(critical_staffing_shortage_today_yes) + sum(critical_staffing_shortage_today_no)) / total) %>%
+  #arrange (desc(date))%>%
+  arrange (date) %>% 
+  mutate (#days_low_vax = RcppRoll::roll_sum(dplyr::lag(low_vax),14, fill=NA, align="right"),
+          #days_low_st_vax = RcppRoll::roll_sum(dplyr::lag(low_st_vax),14, fill=NA, align="right"),
+          roll_avg = zoo::rollmean(pct_yes, k = 7, fill = NA, align = "right")* 100) 
+
+hospital3 %>%
+  ggplot (aes(x = date, 
+              y = pct_yes,
+              #fill = state
+              )) +
+    geom_line() 
+
+#This calculates a national rate of the hospitals anticipate a critical staffing shortage in a week's time and how many of them responded.
+#Hospitals MUST report if they're expecting a critical staffing shortage within a week.
+#Percent reporting climbs after July 2020, so this filters out early data with few hospitals reporting
+
+hospital4 <- hospital %>% 
+  #group_by (date, state) %>% #USE THIS TO GROUP BY DATE AND STATE INSTEAD OF NATIONAL RATE
+  group_by (date) %>%
+  select (date, state, critical_staffing_shortage_anticipated_within_week_yes, critical_staffing_shortage_anticipated_within_week_no, critical_staffing_shortage_anticipated_within_week_not_reported) %>%
+  #sum up three possible responses 
+  summarize (total = sum(critical_staffing_shortage_anticipated_within_week_yes) + sum(critical_staffing_shortage_anticipated_within_week_no) + sum(critical_staffing_shortage_anticipated_within_week_not_reported),
+             #Of those that responded, calculate percent responding yes
+          pct_yes = sum(critical_staffing_shortage_anticipated_within_week_yes) / (sum(critical_staffing_shortage_anticipated_within_week_yes) + sum(critical_staffing_shortage_anticipated_within_week_no)), 
+             #Calculate percent that responded
+          pct_reporting = (sum(critical_staffing_shortage_anticipated_within_week_yes) + sum(critical_staffing_shortage_anticipated_within_week_no)) / total) %>%
+  arrange (desc(date)) %>%
+  filter (date > as.Date("2020-07-31"))
+
+#Calculate national 7-day rolling averages of the percent anticipating a critical staffing shortage and the percent of hospitals responding 
+hospital4a <- hospital4 %>%
+  arrange (date) %>% 
+  mutate (#days_low_vax = RcppRoll::roll_sum(dplyr::lag(low_vax),14, fill=NA, align="right"),
+          #days_low_st_vax = RcppRoll::roll_sum(dplyr::lag(low_st_vax),14, fill=NA, align="right"),
+          roll_avg = zoo::rollmean(pct_yes, k = 7, fill = NA, align = "right")* 100,
+          roll_reporting = zoo::rollmean(pct_reporting, k = 7, fill = NA, align = "right")* 100) 
+          
+write_csv(hospital4a, paste0('hhs/calculated/', format(Sys.time(), format="%Y-%m-%d-%H-%M"),'.csv'))
+
+#Graph national rate of hospitals anticipating a critical staffing shortage.
+#Line in digital story reads, "Two years of the pandemic have pushed health care workers to the brink, with federal data showing that critical staffing shortages now plague one of every four hospitals nationwide."
+#Rate has fallen below 25% since writing the draft, so may need to edit depending on publish date.
+
+hospital4a %>%
+  #filter (state == "TX") %>%
+  filter (date > as.Date("2020-07-31")) %>%
+  ggplot (aes(x = date)) +
+    geom_line(aes(y = roll_avg), color = "darkred") + 
+  #  geom_line(aes(y = roll_reporting), color="steelblue", linetype="twodash") +
+    labs(x="Date", 
+         y="% of hospitals (7-day rolling average)",
+         title="Hospitals anticipating critical staffing shortages within a week", 
+         #subtitle="", 
+         #fill="95% CI for trendline",
+         caption="Source: U.S. Department of Health & Human Services") + 
+  scale_x_date(#limits = c(as.Date("2006-12-31"), as.Date("2014-09-30")), 
+               breaks = seq(as.Date("2020-08-01"), as.Date("2022-02-28"), "month"),
+               date_labels = "%b %Y") +
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  scale_y_continuous(limits = c(0, 30),
+                     breaks = seq(0, 30, by = 5), 
+                     labels = paste0(seq(0, 30, by = 5), "%")) +
+  #geom_vline(xintercept = ) +
+  # Shade area under y_lim
+  #geom_rect(aes(xmin = as.Date("2021-09-01"), xmax = as.Date("2021-10-01"), ymin = 0, ymax = Inf), 
+  annotate("rect", xmin=as.Date("2020-11-01"), xmax=as.Date("2021-02-01"), ymin=0, ymax=Inf, alpha=0.2, fill="red") +
+  annotate(geom="text", x=as.Date("2020-12-15"), y=1, label="1st winter wave", size =3) +
+  annotate("rect", xmin=as.Date("2021-08-01"), xmax=as.Date("2021-10-01"), ymin=0, ymax=Inf, alpha=0.2, fill="red") +
+  annotate(geom="text", x=as.Date("2021-09-01"), y=1, label="Delta wave", size =3) +
+  annotate("rect", xmin=as.Date("2021-12-15"), xmax=as.Date("2022-02-01"), ymin=0, ymax=Inf, alpha=0.2, fill="red") +
+  annotate(geom="text", x=as.Date("2022-01-08"), y=2, label="Omicron\nwave", size =3) 
+#  ylim (0, 30)
