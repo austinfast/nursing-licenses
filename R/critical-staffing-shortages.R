@@ -2,6 +2,7 @@
 library(tidyverse)
 library(janitor)
 library(lubridate)
+library(zoo)
 
 #COVID-19 Reported Patient Impact and Hospital Capacity by State Timeseries
 #https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Capa/g62h-syeh
