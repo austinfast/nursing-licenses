@@ -4,6 +4,9 @@ library(janitor)
 library(lubridate)
 library(zoo)
 
+#Set time zone to save files with correct date
+Sys.setenv(TZ="America/Los_Angeles")
+
 #COVID-19 Reported Patient Impact and Hospital Capacity by State Timeseries
 #https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Capa/g62h-syeh
 #Pull historical data into R
