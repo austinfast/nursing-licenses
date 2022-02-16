@@ -1,13 +1,13 @@
 # Daily scraping
 name: scrape_hhs
 
-# Controls when the action will run. -Every hour
+# Controls when the action will run. -Scheduled for every hour
 on:
 #  push:
 #    branches: main
   workflow_dispatch:
-#  schedule:
-#    - cron:  '0 * * * *'
+  schedule:
+    - cron:  '0 * * * *'
 
 jobs:
   generate-data:
