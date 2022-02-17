@@ -9,4 +9,4 @@ url="https://healthdata.gov/api/views/g62h-syeh/rows.csv?accessType=DOWNLOAD"
 #Read current data into dataframe
 data = pd.read_csv(url)
 #Save as CSV
-data.to_csv(f'/hhs/scrapes/{time.strftime("%Y%m%d")}.csv', index=False)
+data.to_csv(f'./hhs/scrapes/{time.strftime("%Y-%m-%d-%H-%M")}.csv', index=False)
