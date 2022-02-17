@@ -15,7 +15,11 @@ library(readxl)
 library(tidycensus)
 
 options(scipen=999)
+#Set working directory to find data files
+setwd('/Users/austinfast/Documents/NPR/210908-nursing licenses')
 start_time <- Sys.time()
+
+#Austin: Before running, find&replace State data/ with /Users/austinfast/Documents/NPR/210908-nursing licenses/State data/
 ```
 
 Import Arkansas
@@ -2402,33 +2406,74 @@ Includes exam, endorsement, competency (renewals?), refresher course, reinstatem
 Doesn't include pending
 Includes renewals, but labelled two different ways, so not going to try and clean
 ```{r}
-state <- read_excel("State data/NC-NPRApplicationData.xlsx") %>%
+#state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/NC-NPRApplicationData.xlsx") %>%
+#  clean_names() 
+
+state <- read_excel("State data/NC-NPRApplicationDataV2.xlsx") %>%
   clean_names() 
 
-#No records have both initial exam and initial endorsement, so can combine them into issue_date, which is empty
+#No records have both initial exam and initial endorsement, so can combine them into issue_date, which is empty for all files in V1. V2 has issue date column filled in.
 state %>%
   filter (!is.na(initial_exam) & !is.na(initial_endorsement))
 state %>%
   filter (!is.na(issue_date))
 
-state2 <- state %>%
-  mutate (issue_date = as.Date(coalesce(initial_exam, initial_endorsement)),
-          application_date = as.Date(format(app_sumbit_date, "%Y-%m-%d")),
-          last_renewal=as.Date(as.numeric(last_renewal), origin =  "1899-12-30")) #%>% #Converts last renewal to date format
+#Temp licenses don't calculate
+nc_temp <- state %>%
+  filter (app_type == "Temporary Request")
 
-#Renewals are messy, so not going to include
-state3 <- state2 %>%
+state2 <- state %>%
+  mutate (issue_date2 = as.Date(coalesce(initial_exam, initial_endorsement, issue_date)),
+          application_date = as.Date(format(app_sumbit_date, "%Y-%m-%d")),
+          issue_date = as.Date(format(issue_date, "%Y-%m-%d")), #original
+          last_renewal = as.Date(format(last_renewal, "%Y-%m-%d"))
+          #Use below for V1 data
+          #last_renewal=as.Date(as.numeric(last_renewal), origin =  "1899-12-30")
+          ) #%>% #Converts last renewal to date format
+
+# Only 44 don't match when comparing initial_exam/initial_endorsement to issue_date column, including 20 exams
+mismatch <- state2 %>% 
+  filter (issue_date != issue_date2) 
+
+mismatch2 <- mismatch %>%
+  mutate (issue_date2 = case_when (
+    app_type %in% c("Renewal", "Competency") ~ coalesce(last_renewal,as.Date(format(last_reinstatment, "%Y-%m-%d"))),
+    app_type == "Exam" ~ issue_date,
+    app_type == "Reinstatement" ~ as.Date(format(last_reinstatment, "%Y-%m-%d"))))
+    
+mismatch2 %>% 
+  filter (issue_date == issue_date2)
+
+state2a <- state2 %>%
+  anti_join (mismatch) %>% #remove those whose issue_date doesn't match and replace with corrected dates
+  rbind (mismatch2)
+# Check Diandra Denise Molson to see they've matched
+#Issue_date and issue_date2 don't match
+mismatch %>% 
+  filter (first_name=="Diandra" & middle_name=="Denise" & last_name=="Molson") %>%
+  select (8:20)
+#Issue_date and issue_date2 match up here
+state2a %>% 
+  filter (first_name=="Diandra" & middle_name=="Denise" & last_name=="Molson") %>%
+  select (8:20)
+
+#Renewals are messy because they all have the most recent renewal's issue date instead of each renewal's issue date, so not going to include.
+state3 <- state2a %>%
   mutate (process_time = case_when (
-    app_type %in% c("Exam", "Endorsement") ~ issue_date - application_date,
+    app_type %in% c("Exam", "Endorsement", "Temporary Request") ~ issue_date2 - application_date,
     app_type %in% c("Competency", "Renewal") ~ last_renewal - application_date))
 
+#How many have negative processing times?
 negatives <- state3 %>%  
   filter (process_time < 0)
+#All negatives are competency or renewals
+negatives %>% count (app_type)
 
 #Pull out only Exam/Endorsement. It appears this is how nurses are first licensed, and then later renewals are entered as competency or renewal. See below for example
-jones <- state2 %>% filter (first_name=="Kimberly" & middle_name=="Ann" & last_name=="Jones")
+jones <- state2a %>% filter (first_name=="Kimberly" & middle_name=="Ann" & last_name=="Jones")
 
-state3 <- state2 %>%
+#Pull out permanent licenses by exam and endorsement only. Will do temporary licenses separately
+state3 <- state2a %>%
   filter (app_type %in% c("Exam", "Endorsement")) %>%
   mutate (month = substr(issue_date, 1,7),
           year = year(issue_date),
@@ -2450,32 +2495,89 @@ state3 %>%
 #Any mismatches?
 state3 %>% filter (as.Date(format(app_sumbit_date, "%Y-%m-%d")) != application_date)
 
-#Some nurses applied multiple times. There are 33,815 individuals - 2,079 have more than 1 record, meaning they re-tested or submitted multiple endorsement applications >> 1768 are exams + 311 are endorsement
+#Some nurses applied multiple times. There are 34,202 individuals - 2,026 have more than 1 record, meaning they re-tested or submitted multiple endorsement applications >> 1746 are exams + 280 are endorsement
+state3 %>% distinct (first_name, middle_name, last_name, addr_city)
+  
 nc_multiples <- state3 %>%
-  group_by (first_name, middle_name, last_name) %>%
+  group_by (first_name, middle_name, last_name, addr_city) %>%
   mutate (count=n()) %>%
-  arrange (desc(count), last_name, first_name, city, application_date)
+  arrange (desc(count), last_name, first_name, addr_city, application_date)
+
+#Are any of the same people's names listed under multiple cities? No
+nc_multiples %>%
+  ungroup() %>%
+  distinct (first_name, middle_name, last_name, addr_city, .keep_all=T) %>%
+  filter (count > 1) %>% 
+  count (first_name, middle_name, last_name) %>%
+  filter (n > 1)
+
+#How many people have multiple records? 2026 
+nc_multiples %>%
+  ungroup() %>%
+  distinct (first_name, middle_name, last_name, addr_city, .keep_all=T) %>%
+  filter (count > 1) %>%
+  count (app_type)
 
 nc_multiples %>%
   ungroup() %>%
-  distinct (first_name, middle_name, last_name, .keep_all=T) %>%
   filter (count > 1) %>%
-  count (app_type)
-  #count (count)
+  group_by (first_name, middle_name, last_name, addr_city) %>%
+  mutate (count = n()) %>%
+  distinct (first_name, middle_name, last_name, addr_city, .keep_all=T) %>%
+  filter (count > 1)
 
 #We'll assume the latest application is the one that eventually got approved, so this keeps the final application's process_time
 nc_multiples2 <- nc_multiples %>%
   filter (count > 1) %>%
   slice_tail()
-#Create dataframe with all 1-record people (31736 people)
+#Create dataframe with all 1-record people (32176 people)
 nc_multiples1 <- nc_multiples %>%
   filter (count==1)
-#Combine 1-record people with only 1 record from the 2079 multiple-record people
+#Combine 1-record people with only 1 record from the 2026 multiple-record people
 state4 <- rbind(nc_multiples1, nc_multiples2) %>%
   select (-count)
 
+#Now add in temporary requests -- many of these are repeats of people from the permanent license records above, so adding this separately 
+#Pull out temporary licenses only
+state_temp <- state2a %>%
+  filter (license_duration=="Temporary") %>%
+  mutate (month = substr(issue_date, 1,7),
+          year = year(issue_date),
+          #Temps don't have issue date, so they're not even here, but keeping in case NC returns them
+          lic_type = case_when (
+            license_duration=="Temporary" ~ paste0(license_type, "-Temp"),
+            TRUE ~ license_type),
+          process_time = issue_date - application_date)
+
+#How many of each type are here?
+state_temp %>% count (lic_type, app_type, license_duration, year)
+#Any negatives? none
+state_temp %>%
+  filter (process_time < 0 )
+#Any failed? none
+state_temp %>%
+  filter (is.na(process_time))
+#Any people have multiple records? Just two people who got both temp LPN and temp RN licenses
+state_temp %>% 
+  group_by (first_name, middle_name, last_name, addr_city) %>%
+  mutate (count=n()) %>%
+  filter (count > 1) %>%
+  arrange (desc(count), last_name, first_name, addr_city, application_date)
+#Any mismatches?
+state_temp %>% filter (as.Date(format(app_sumbit_date, "%Y-%m-%d")) != application_date)
+
+#Virtually all temporary licenses go to endorsement candidates
+state4 %>% 
+  semi_join (state_temp, by = c("first_name", "middle_name", "last_name", "addr_city", "addr_state")) %>% #keeps all exam/endorsement candidates also found in temp dataframe
+  ungroup() %>%
+  count (app_type)
+
+#Join permanent exam/endorsement licenses with temporary licenses issued
+state5 <- state4 %>%
+  rbind (state_temp)
+
 #Remove unformatted date fields and unnecessary fields
-nc_state <- state4 %>%
+nc_state <- state5 %>%
   mutate (expiration_date = as.Date(expiration_date),
           data_state = "NC",
           year = as.character(year)) %>%
@@ -3423,7 +3525,7 @@ state_averages <- valid_data2 %>%
              count_over180days = sum(process_time2 > 180),
              pct_over180days = count_over180days/count,
              count_over1year = sum(process_time2 > 365),
-             pct_over1year = count_over1year/count)
+             pct_over1year = count_over1year/count) 
 
 #pending_counts <- state_averages %>%
 #  filter (str_detect(year, "^Pending")) %>%
@@ -3436,6 +3538,30 @@ state_avg_lic_type_only <- valid_data2 %>%
   filter (lic_type %in% c("LPN", "RN")) %>%
   filter (standard_app_type %in% c("Endorsement", "Exam", "Other", "Unknown")) %>%
   group_by (data_state, lic_type, year) %>%
+  summarize (mean = round(mean(process_time2)),
+             median = median (process_time2),
+             count = n(),
+             count_over30days = sum(process_time2 > 30),
+             pct_over30days = count_over30days/count,
+             count_over60days = sum(process_time2 > 60),
+             pct_over60days = count_over60days/count,
+             count_over90days = sum(process_time2 > 90),
+             pct_over90days = count_over90days/count,
+             count_over120days = sum(process_time2 > 120),
+             pct_over120days = count_over120days/count,
+             count_over180days = sum(process_time2 > 180),
+             pct_over180days = count_over180days/count,
+             count_over1year = sum(process_time2 > 365),
+             pct_over1year = count_over1year/count)
+
+#Keeps all new licenses, grouping RNs and LPNs and all application types together
+#Removes exam-retest, reinstatements, renewals
+#keeps only 2021
+state_avg_lic_type_only_lumped <- valid_data2 %>%
+  filter (lic_type %in% c("LPN", "RN")) %>%
+  filter (standard_app_type %in% c("Endorsement", "Exam", "Other", "Unknown")) %>%
+  filter (year == "2021") %>%
+  group_by (data_state, year) %>%
   summarize (mean = round(mean(process_time2)),
              median = median (process_time2),
              count = n(),
@@ -3517,7 +3643,54 @@ natl_comparison2 <- natl_averages2 %>%
 #Percent of new licenses issued that took longer than a month bumped from 78% in 2020 to 80% in 2021. 
 #Percent of new licenses issued that took longer than 2 months jumped from 54% in 2020 to 58% in 2021. 
 #Percent of new licenses issued that took longer than 3 months jumped from 32% in 2020 to 37% in 2021. 
+
+#What about for all new RN/LPN licenses, grouping exam, endorsement, other and unknown together?
+#app_types: Unknown is mostly CT/VA, which didn't specify application type
+natl_averages3 <- valid_data2 %>%
+  mutate (year = if_else (str_detect(year, "^Pending"), "Pending", year)) %>%
+  filter (lic_type %in% c("LPN", "RN")) %>%
+  filter (!(standard_app_type %in% c("Reinstatement", "Renewal", "Exam-retest"))) %>%
+  group_by (year) %>%
+  summarize (mean = round(mean(process_time2)),
+             median = median (process_time2),
+             count = n(),
+             count_over30days = sum(process_time2 > 30),
+             pct_over30days = count_over30days/count,
+             count_over60days = sum(process_time2 > 60),
+             pct_over60days = count_over60days/count,
+             count_over90days = sum(process_time2 > 90),
+             pct_over90days = count_over90days/count,
+             count_over120days = sum(process_time2 > 120),
+             pct_over120days = count_over120days/count,
+             count_over180days = sum(process_time2 > 180),
+             pct_over180days = count_over180days/count,
+             count_over1year = sum(process_time2 > 365),
+             pct_over1year = count_over1year/count)
+
+#Group by application type
+#app_types: Unknown is mostly CT/VA, which didn't specify application type
+natl_averages4 <- valid_data2 %>%
+  mutate (year = if_else (str_detect(year, "^Pending"), "Pending", year)) %>%
+  filter (lic_type %in% c("LPN", "RN")) %>%
+  filter (!(standard_app_type %in% c("Reinstatement", "Renewal", "Exam-retest"))) %>%
+  group_by (standard_app_type, year) %>%
+  summarize (mean = round(mean(process_time2)),
+             median = median (process_time2),
+             count = n(),
+             count_over30days = sum(process_time2 > 30),
+             pct_over30days = count_over30days/count,
+             count_over60days = sum(process_time2 > 60),
+             pct_over60days = count_over60days/count,
+             count_over90days = sum(process_time2 > 90),
+             pct_over90days = count_over90days/count,
+             count_over120days = sum(process_time2 > 120),
+             pct_over120days = count_over120days/count,
+             count_over180days = sum(process_time2 > 180),
+             pct_over180days = count_over180days/count,
+             count_over1year = sum(process_time2 > 365),
+             pct_over1year = count_over1year/count)
 ```
+
 Takes about 11m45s
 ```{r}
 end_time <- Sys.time()
@@ -3550,7 +3723,7 @@ rbind (compare_count, compare_pct)
 
 *** BIG FINDINGS ***
 #Same percentages when filtering out those issued in Oct/Nov/Dec 2021
-In these 31 states, over half (58%) the 219,000 RNs and LPNs issued new licenses Jan. 1-Sept. 23, 2021, waited more than two months (126,006 nurses). Over one-third  (36%) of nurses (78,681) waited more than 3 months to get a new license issued in 2021.
+In these 31 states, over half (58%) the 219,000 RNs and LPNs issued new licenses Jan. 1-Sept. 23, 2021, waited more than two months (126,006 nurses). Over one-third  (36%) of nurses (78,687) waited more than 3 months to get a new license issued in 2021.
 
 Count up totals by RN/LPN (new licenses only) - LPN numbers are slightly slower
 ```{r}
