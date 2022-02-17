@@ -30,7 +30,9 @@ data2 = data2.loc[after_start_date]
 data2 = data2.sort_values(by = ['date', 'state'], ascending = (False, True))
 
 #SAVE RAW DATA TO FILE
-data2.to_csv(f'/hhs/scrapes/{time.strftime("%Y-%m-%d-%H-%M"")}.csv', index=False)
+data2.to_csv(f'/hhs/scrapes/{time.strftime("%Y-%m-%d-%H-%M")}.csv', index=False)
+
+
 
 #CALCULATE NATIONAL RATE ======================================= |
 data3 = data2.groupby('date').agg(
@@ -54,7 +56,9 @@ data3['roll_reporting'] = data3["pct_reporting"].rolling(7).mean()
 data3 = data3.sort_values(by = 'date', ascending = False)
 
 #SAVE NATIONAL RATE TO FILE
-data3.to_csv(f'/hhs/national/{time.strftime("%Y-%m-%d-%H-%M"")}.csv', index=False)
+data3.to_csv(f'/hhs/national/{time.strftime("%Y-%m-%d-%H-%M")}.csv', index=False)
+
+
 
 #CALCULATE STATE RATES ======================================= |
 data4 = data2.groupby(['date','state']).agg(
@@ -77,4 +81,4 @@ data4['roll_reporting'] = data4["pct_reporting"].rolling(7).mean()
 data4 = data4.sort_values(by = ['date', 'state'], ascending = (False, True))
 
 #SAVE STATE RATES TO FILE
-#data4.to_csv(f'/hhs/states/{time.strftime("%Y-%m-%d-%H-%M"")}.csv', index=False)
+data4.to_csv(f'/hhs/states/{time.strftime("%Y-%m-%d-%H-%M")}.csv', index=False)
