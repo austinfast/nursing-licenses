@@ -16,7 +16,7 @@ library(tidycensus)
 
 options(scipen=999)
 #Set working directory to find data files
-setwd('/Users/austinfast/Documents/NPR/210908-nursing licenses')
+#setwd('/Users/austinfast/Documents/NPR/210908-nursing licenses')
 start_time <- Sys.time()
 
 #Austin: Before running, find&replace State data/ with /Users/austinfast/Documents/NPR/210908-nursing licenses/State data/
@@ -3771,7 +3771,7 @@ Longer than 90 days:
 #Most states didn't provide applications before 2019, meaning 2019 is incomplete
 ```{r}
 ca_averages <- state_averages %>%
-  filter (data_state=="CA") %>%
+  filter (data_state=="PA") %>%
   filter (year != "2019")
 
 #write_csv (ca_averages, "ca_averages.csv")
@@ -3845,6 +3845,24 @@ nnd3 %>%
   group_by (data) %>%
   summarize (count = sum(licenses),
              pct = sum (pct))
+```
+
+
+Virginia claims to process 99% of applications within 30 days, but that's 30 days from getting marked complete.
+docs_time records days from being marked complete. This confirms their claim, but also shows only
+24.2% of the applications were issued within 30 calendar days from their submission.
+```{r}
+valid_data2 %>% 
+  filter (data_state=="VA" & lic_type %in% c("RN", "LPN") & standard_app_type=="Unknown" & year=="2021") %>%
+  group_by (data_state, lic_type, standard_app_type, year) %>%
+  summarize (count = n(),
+             count_within_30 = sum(process_time2 <= 30),
+             pct = count_within_30 / count,
+             docs_within_30 = sum(docs_time <= 30),
+             docs_pct = docs_within_30 / count)
+
+#What percent of VA's 2021 applicants were licensed within 30 calendar days of their application?
+(139 + 1778) / (1024 + 6889)
 ```
 
 Compare across states
