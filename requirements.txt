@@ -1,0 +1,10 @@
+pandas==1.3.5
+time==3.10.1
+os
+#pyjanitor==0.22.0
+#sqlite-utils
+#datasette
+#datasette-publish-vercel
+#datasette-graphql
+#GitPython
+#TableauScraper==0.1.29
