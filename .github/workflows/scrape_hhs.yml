@@ -4,10 +4,10 @@ name: scrape_hhs
 # Controls when the action will run. Scheduled for every hour
 on:
   schedule:
-    - cron:  '*/5 * * * *'
+    - cron:  '*/10 * * * *'
   workflow_dispatch:
-#  push:
-#    branches: main
+  push:
+    branches: main
 
 jobs:
   generate-data:
