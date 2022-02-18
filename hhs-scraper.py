@@ -65,6 +65,9 @@ data4 = data2.groupby(['date','state']).agg(
     no = pd.NamedAgg(column='critical_staffing_shortage_anticipated_within_week_no', aggfunc=sum),
     missing = pd.NamedAgg(column='critical_staffing_shortage_anticipated_within_week_not_reported', aggfunc=sum))
 
+#Sort by state then date ascending to calculate rolling averages
+data4 = data4.sort_values(by = ['state', 'date'])
+
 #Calculate total
 data4["total"] = data4["yes"] + data4["no"] + data4["missing"]
 #Calculate those saying yes of those that answered
