@@ -19,7 +19,7 @@ options(scipen=999)
 #setwd('/Users/austinfast/Documents/NPR/210908-nursing licenses')
 start_time <- Sys.time()
 
-#Austin: Before running, find&replace State data/ with /Users/austinfast/Documents/NPR/210908-nursing licenses/State data/
+#Austin: Before running, find&replace /Users/austinfast/Documents/NPR/210908-nursing licenses/State data/ with /Users/austinfast/Documents/NPR/210908-nursing licenses//Users/austinfast/Documents/NPR/210908-nursing licenses/State data/
 ```
 
 Import Arkansas
@@ -29,7 +29,7 @@ Import Arkansas
 
 Arkansas doubled names, one temp permit and one permanent license. 
 ```{r}
-state <- read_excel("State data/AR-Application Management for FOIA 09_23_2021.xlsx", skip=1) %>% 
+state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/AR-Application Management for FOIA 09_23_2021.xlsx", skip=1) %>% 
   clean_names()
 
 #Standardize fields
@@ -89,7 +89,7 @@ Each entity_id has multiple rows, one for each stage of their application proces
 
 PROCESS CA's VOCATIONAL NURSES FIRST
 ```{r}
-state_vn <- read_excel("State data/CA-BVNPT PRA Report 2022-01-04.xlsx", sheet=1) %>%
+state_vn <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/CA-BVNPT PRA Report 2022-01-04.xlsx", sheet=1) %>%
   clean_names()
 
 vns <- state_vn %>%
@@ -283,7 +283,7 @@ vns10 %>%
 
 PROCESS CALIFORNIA RNs
 ```{r}
-state_rn <- read_excel("State data/CA-BRN PRA Report 2022-01-04.xlsx", sheet=1) %>%
+state_rn <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/CA-BRN PRA Report 2022-01-04.xlsx", sheet=1) %>%
   clean_names()
 
 #Pull out only RNs
@@ -555,7 +555,7 @@ Import Colorado - combines renewal/new dates
 * no renewals
 
 ```{r}
-state <- read_excel("State data/CO-250-2021_RN_TRN_PN_TPN_Applicants.xlsx") %>% clean_names()
+state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/CO-250-2021_RN_TRN_PN_TPN_Applicants.xlsx") %>% clean_names()
 
 #Calculate processing time, taking into account renewals
 co_state <- state %>%
@@ -636,7 +636,7 @@ Import Connecticut
 * Includes pending
 Cannot split by exam, endorsement, etc.
 ```{r}
-state <- read_excel("State data/CT-NPR FOI Austin Fast - RN, LPN - Update-clean.xlsx") %>%
+state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/CT-NPR FOI Austin Fast - RN, LPN - Update-clean.xlsx") %>%
   clean_names() %>%
   mutate (across(c(effective_date, grant_date, expiration_date, reinstate_date, application_date, graduation_date, date_of_birth), ~ymd(.x)))
 
@@ -709,7 +709,7 @@ Includes exam, endorsement
 Renewals are all negative, cannot use
 
 ```{r}
-state <- read_excel("State data/HI-RN_LPN Applications Report-2021-11-19-18-32-54.xlsx", skip=9) %>%
+state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/HI-RN_LPN Applications Report-2021-11-19-18-32-54.xlsx", skip=9) %>%
   clean_names() %>%
   filter (application_received_date != "Total") %>% 
   select (-x2)
@@ -877,7 +877,7 @@ Import Illinois
 * No pending
 * No renewals
 ```{r}
-il1 <- read_excel("State data/IL-Responsive Documents/2019 Nurses Applied and Issued by Endorsement.xls.xlsx", skip=8) %>% 
+il1 <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/IL-Responsive Documents/2019 Nurses Applied and Issued by Endorsement.xls.xlsx", skip=8) %>% 
   clean_names()  %>%
   mutate (application_type = "Endorsement",
           app_year = 2019,
@@ -885,7 +885,7 @@ il1 <- read_excel("State data/IL-Responsive Documents/2019 Nurses Applied and Is
             str_detect(license_number, "^41") ~ "RN",
             str_detect(license_number, "^43") ~ "LPN",
             TRUE ~ "PROBLEM"))
-il2 <- read_excel("State data/IL-Responsive Documents/2019 Nurses Applied and Issued by Exam.xls.xlsx", skip=8) %>% 
+il2 <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/IL-Responsive Documents/2019 Nurses Applied and Issued by Exam.xls.xlsx", skip=8) %>% 
   clean_names() %>%
   mutate (application_type = "Exam",
           app_year = 2019,
@@ -894,7 +894,7 @@ il2 <- read_excel("State data/IL-Responsive Documents/2019 Nurses Applied and Is
             str_detect(license_number, "^43") ~ "LPN",
             TRUE ~ "PROBLEM"))
 
-il3 <- read_excel("State data/IL-Responsive Documents/2020 Nurses Applied and Issued by Endorsement.xls.xlsx", skip=8) %>% 
+il3 <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/IL-Responsive Documents/2020 Nurses Applied and Issued by Endorsement.xls.xlsx", skip=8) %>% 
   clean_names()  %>%
   mutate (application_type = "Endorsement",
           app_year = 2020,
@@ -902,7 +902,7 @@ il3 <- read_excel("State data/IL-Responsive Documents/2020 Nurses Applied and Is
             str_detect(license_number, "^41") ~ "RN",
             str_detect(license_number, "^43") ~ "LPN",
             TRUE ~ "PROBLEM"))
-il4 <- read_excel("State data/IL-Responsive Documents/2020 Nurses Applied and Issued by Exam.xls.xlsx", skip=8) %>% 
+il4 <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/IL-Responsive Documents/2020 Nurses Applied and Issued by Exam.xls.xlsx", skip=8) %>% 
   clean_names() %>%
   mutate (application_type = "Exam",
           app_year = 2020,
@@ -911,7 +911,7 @@ il4 <- read_excel("State data/IL-Responsive Documents/2020 Nurses Applied and Is
             str_detect(license_number, "^43") ~ "LPN",
             TRUE ~ "PROBLEM"))
 
-il5 <- read_excel("State data/IL-Responsive Documents/2021 Nurses Applied and Issued by Endorsement.xls.xlsx", skip=8) %>% 
+il5 <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/IL-Responsive Documents/2021 Nurses Applied and Issued by Endorsement.xls.xlsx", skip=8) %>% 
   clean_names()  %>%
   mutate (application_type = "Endorsement",
           app_year = 2021,
@@ -919,7 +919,7 @@ il5 <- read_excel("State data/IL-Responsive Documents/2021 Nurses Applied and Is
             str_detect(license_number, "^41") ~ "RN",
             str_detect(license_number, "^43") ~ "LPN",
             TRUE ~ "PROBLEM"))
-il6 <- read_excel("State data/IL-Responsive Documents/2021 Nurses Applied and Issued by Exam.xls.xlsx", skip=8) %>% 
+il6 <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/IL-Responsive Documents/2021 Nurses Applied and Issued by Exam.xls.xlsx", skip=8) %>% 
   clean_names() %>%
   mutate (application_type = "Exam",
           app_year = 2021,
@@ -970,7 +970,7 @@ Includes pending
 
 Only two temporary included in duration field, contains mixed endorsement/exam for some reason
 ```{r}
-state <- read_excel("State data/IA-Records Request.xlsx") %>% clean_names()
+state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/IA-Records Request.xlsx") %>% clean_names()
 
 #Calculate processing time
 ia_state <- state %>%
@@ -1029,7 +1029,7 @@ Includes Exam, Endorsement. Only includes pending/denied reinstatements (232) & 
 Includes 3959 temp licenses.
 Includes pending
 ```{r}
-state <- read_excel("State data/IN-RN and LPN Applications Received 1.1.19-10.6.21.xls", 
+state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/IN-RN and LPN Applications Received 1.1.19-10.6.21.xls", 
                     skip=1,
                     col_types = c("text", "text", "text", "date", "text", "date", "text","date", "text","date")) %>% 
   clean_names() %>%
@@ -1098,7 +1098,7 @@ Includes provisional licenses (exam applicants) and temporary licenses (endorsem
 No pending 
 ```{r}
 #Second version from KY
-state <- read_excel("State data/KY/KY-NPR_ORR_20211109.xlsx",
+state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/KY/KY-NPR_ORR_20211109.xlsx",
                     col_types = c("text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "date", "text", "date", "date", "date", "text", "date", "date", "date")
                     ) %>% 
   clean_names() %>%
@@ -1306,7 +1306,7 @@ All renewals have negative processing times -- they provided original applicatio
 Pending included
 
 ```{r}
-state <- read_excel("State data/LA-NPR Public Records Request.LSBPNE.xlsx",
+state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/LA-NPR Public Records Request.LSBPNE.xlsx",
                     col_types = c("date", "text", "text", "text", "text", "text", "text", "text", "text", "text", "date", "date")) %>% 
                       clean_names()
 
@@ -1362,7 +1362,7 @@ Includes Exam, Reciprocity, Covid-19 emergency order
 Includes pending
 
 ```{r}
-state <- read_excel("State data/MA/Copy of Application Status Report - Nursing 9.23.21.xlsx") %>% clean_names()
+state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/MA/Copy of Application Status Report - Nursing 9.23.21.xlsx") %>% clean_names()
 str(state)
 
 #Calculate processing time
@@ -1376,13 +1376,13 @@ state2 %>%
   count (license_status)
 
 #Import license data downloaded from https://madph.mylicense.com/verification/Search.aspx on Oct. 19, 2021
-ma_rns <- read_csv ("State data/MA/MA_RN_data_101921_date.csv", 
+ma_rns <- read_csv ("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/MA/MA_RN_data_101921_date.csv", 
                     col_types = cols(.default = "c", expiration_date = "D", issue_date = "D")) 
-ma_rns_tmp <- read_csv ("State data/MA/MA_RNtemp_data_101921.csv", 
+ma_rns_tmp <- read_csv ("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/MA/MA_RNtemp_data_101921.csv", 
                     col_types = cols(.default = "c", expiration_date = "D", issue_date = "D"))
-ma_lpns <- read_csv ("State data/MA/MA_LPN_data_101921.csv",
+ma_lpns <- read_csv ("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/MA/MA_LPN_data_101921.csv",
                     col_types = cols(.default = "c", expiration_date = "D", issue_date = "D"))
-ma_lpns_tmp <- read_csv ("State data/MA/MA_LPNtemp_data_101921.csv", 
+ma_lpns_tmp <- read_csv ("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/MA/MA_LPNtemp_data_101921.csv", 
                     col_types = cols(.default = "c", expiration_date = "D", issue_date = "D"))
 
 ma_nurses <- rbind (ma_rns, ma_rns_tmp, ma_lpns, ma_lpns_tmp) %>% 
@@ -1633,7 +1633,7 @@ Import Maine
 Includes endorsement, examination + 1 NA
 Includes pending
 ```{r}
-state <- read_excel("State data/ME/Days to Licensure Merge.xlsx",
+state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/ME/Days to Licensure Merge.xlsx",
                     #col_types = c("date", "text", "text", "text", "text", "text", "text", "text", "text", "text", "date", "date")
                     ) %>% 
                       clean_names()
@@ -1696,7 +1696,7 @@ IMPORT MICHIGAN
 Includes Endorsement, Exam, Relicensure (Exam, Endorsement), Renewal (exam, endorsement), NA
 Includes pending, but doesn't separate pending RN from pending LPN 
 ```{r}
-state <- read_csv ("State data/MI-PROD__simple_saved.csv",
+state <- read_csv ("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/MI-PROD__simple_saved.csv",
                    col_types = cols(.default = "c", LICENSE_INITIAL_ISSUE_DATE = "D", LICENSE_EXP_DATE = "D", APPLICATION_RENEWAL_RELICENSURE_FILE_DATE = "D")) %>%
   clean_names () 
 
@@ -1771,12 +1771,12 @@ Includes exam, endorsement, renewals, reinstatement
 Includes temporary (endorsement permits)
 Includes pending applications
 ```{r}
-sheets <- excel_sheets(path = "State data/MN-npr_data_request_v2.xlsx")
+sheets <- excel_sheets(path = "/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/MN-npr_data_request_v2.xlsx")
 
 state <- tibble()
 for (i in sheets){
   #i <- "Q1 21"
-  step_df <-read_excel("State data/MN-npr_data_request_v2.xlsx",
+  step_df <-read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/MN-npr_data_request_v2.xlsx",
                        sheet = i) %>% 
     clean_names() %>%
     mutate (source = i)
@@ -1861,7 +1861,7 @@ IMPORT MISSISSIPPI
 Includes exam, endorsement and renewal (split by exam, endorsement)
 No pending applications
 ```{r}
-state <-read_excel("State data/MS-NPR Request-correct2.xlsx", skip=2) %>% 
+state <-read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/MS-NPR Request-correct2.xlsx", skip=2) %>% 
     clean_names() 
 
 str(state)
@@ -1919,11 +1919,11 @@ No renewals (no application date provided)
 
 ```{r}
 #Import LPN files showing licenses issued
-mt_lpn1 <- read_excel ("State data/MT/MT-LPN Licenses - Exam.xlsx") %>% 
+mt_lpn1 <- read_excel ("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/MT/MT-LPN Licenses - Exam.xlsx") %>% 
   clean_names() %>%
   mutate (app_type = "Exam",
           lic_type = "LPN")
-mt_lpn2 <- read_excel ("State data/MT/MT-LPN Licenses - Credential.xlsx") %>% 
+mt_lpn2 <- read_excel ("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/MT/MT-LPN Licenses - Credential.xlsx") %>% 
   clean_names() %>%
   mutate (app_type = "Endorsement",
           lic_type = "LPN")
@@ -1933,11 +1933,11 @@ mt_lpn_lic <- rbind (mt_lpn1, mt_lpn2) %>%
           issue_date = issued_date) %>%
   select (-c(lic_type, state, country_region))
 #Import LPN files showing applications
-mt_lpn3 <- read_excel ("State data/MT/MT-LPN Applications - Exam .xlsx") %>% 
+mt_lpn3 <- read_excel ("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/MT/MT-LPN Applications - Exam .xlsx") %>% 
   clean_names() %>%
   mutate (app_type = "Exam",
           lic_type = "LPN")
-mt_lpn4 <- read_excel ("State data/MT/MT-LPN Applications - Credential .xlsx") %>% 
+mt_lpn4 <- read_excel ("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/MT/MT-LPN Applications - Credential .xlsx") %>% 
   clean_names() %>%
   mutate (app_type = "Endorsement",
           lic_type = "LPN")
@@ -1979,11 +1979,11 @@ anti_join (lpn_bind, mt_lpn_lic, by = c("first_name", "last_name", "city", "app_
   count (app_status)
 
 #Import RN files showing licenses issued
-mt_rn1 <- read_excel ("State data/MT/MT-RN Licenses - Exam.xlsx") %>% 
+mt_rn1 <- read_excel ("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/MT/MT-RN Licenses - Exam.xlsx") %>% 
   clean_names() %>%
   mutate (app_type = "Exam",
           lic_type = "RN")
-mt_rn2 <- read_excel ("State data/MT/MT-RN Licenses - Credential.xlsx") %>% 
+mt_rn2 <- read_excel ("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/MT/MT-RN Licenses - Credential.xlsx") %>% 
   clean_names() %>%
   mutate (app_type = "Endorsement",
           lic_type = "RN")
@@ -1993,11 +1993,11 @@ mt_rn_lic <- rbind (mt_rn1, mt_rn2) %>%
           issue_date = issued_date) %>%
   select (-c(lic_type, state, country_region))
 #Import RN files showing applications
-mt_rn3 <- read_excel ("State data/MT/MT-RN Applications - Exam.xlsx") %>% 
+mt_rn3 <- read_excel ("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/MT/MT-RN Applications - Exam.xlsx") %>% 
   clean_names() %>%
   mutate (app_type = "Exam",
           lic_type = "RN") 
-mt_rn4 <- read_excel ("State data/MT/MT-RN Applications - Credential .xlsx") %>% 
+mt_rn4 <- read_excel ("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/MT/MT-RN Applications - Credential .xlsx") %>% 
   clean_names() %>%
   mutate (app_type = "Endorsement",
           lic_type = "RN") %>%
@@ -2117,7 +2117,7 @@ Includes pending
 
 RN pre-exam = provisional?
 ```{r}
-state <- read_excel("State data/NE-NPR Nursing Data Request-092821.xlsx") %>% clean_names()
+state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/NE-NPR Nursing Data Request-092821.xlsx") %>% clean_names()
 
 #Calculate processing time
 ne_state <- state %>%
@@ -2186,7 +2186,7 @@ Includes pending
 
 Includes checklist complete date, but shows license nearly always issued same day checklist complete.
 ```{r}
-state <- read_csv("State data/NH-initial-apps.csv")%>%
+state <- read_csv("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/NH-initial-apps.csv")%>%
   clean_names()
 
 #Calculate processing time
@@ -2247,16 +2247,16 @@ Includes pending
 Emergency graduate license order: https://www.njconsumeraffairs.gov/COVID19/Pages/Emergency-Graduate-Licensure.aspx
 ```{r}
 #Import RN files
-nj1 <- read_csv ("State data/NJ-Responsive Documents/clean/NPR - RPN NEW APPLICANTS SINCE 2019 100521.csv") %>% clean_names()
-nj2 <- read_csv("State data/NJ-Responsive Documents/clean/NPR - RPN GRAD LICENSEES 100521.csv") %>% clean_names() 
-nj3 <- read_csv("State data/NJ-Responsive Documents/clean/NPR - RPN PENDING REINSTATEMENT APPLICANTS SINCE 2019 100521.csv") %>% clean_names()
-nj4 <- read_csv("State data/NJ-Responsive Documents/clean/NPR - RPN COMPLETED REINSTATEMENT APPLICANTS SINCE 2019 100521.csv") %>% clean_names()
+nj1 <- read_csv ("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/NJ-Responsive Documents/clean/NPR - RPN NEW APPLICANTS SINCE 2019 100521.csv") %>% clean_names()
+nj2 <- read_csv("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/NJ-Responsive Documents/clean/NPR - RPN GRAD LICENSEES 100521.csv") %>% clean_names() 
+nj3 <- read_csv("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/NJ-Responsive Documents/clean/NPR - RPN PENDING REINSTATEMENT APPLICANTS SINCE 2019 100521.csv") %>% clean_names()
+nj4 <- read_csv("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/NJ-Responsive Documents/clean/NPR - RPN COMPLETED REINSTATEMENT APPLICANTS SINCE 2019 100521.csv") %>% clean_names()
 #Import LPN files
-nj_lpn1 <- read_csv ("State data/NJ-Responsive Documents/clean/NPR - LPN NEW APPLICANTS SINCE 2019 100521.csv") %>% clean_names()
-nj_lpn2 <- read_csv("State data/NJ-Responsive Documents/clean/NPR - LPN GRAD LICENSEES 100521.csv") %>% clean_names() 
-nj_lpn3 <- read_csv("State data/NJ-Responsive Documents/clean/NPR - LPN PENDING REINSTATEMENT APPLICANTS SINCE 2019 100521.csv") %>% clean_names()
-nj_lpn4 <- read_csv("State data/NJ-Responsive Documents/clean/NPR - LPN COMPLETED REINSTATEMENT APPLICANTS SINCE 2019 100521.csv") %>% clean_names()
-nj_lpn5 <- read_csv("State data/NJ-Responsive Documents/clean/NPR - LPN RENEWALS SINCE 2019 100521.csv",
+nj_lpn1 <- read_csv ("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/NJ-Responsive Documents/clean/NPR - LPN NEW APPLICANTS SINCE 2019 100521.csv") %>% clean_names()
+nj_lpn2 <- read_csv("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/NJ-Responsive Documents/clean/NPR - LPN GRAD LICENSEES 100521.csv") %>% clean_names() 
+nj_lpn3 <- read_csv("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/NJ-Responsive Documents/clean/NPR - LPN PENDING REINSTATEMENT APPLICANTS SINCE 2019 100521.csv") %>% clean_names()
+nj_lpn4 <- read_csv("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/NJ-Responsive Documents/clean/NPR - LPN COMPLETED REINSTATEMENT APPLICANTS SINCE 2019 100521.csv") %>% clean_names()
+nj_lpn5 <- read_csv("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/NJ-Responsive Documents/clean/NPR - LPN RENEWALS SINCE 2019 100521.csv",
                     col_types = cols(.default = "c", CREATE_DATE = "D", EXPIRATION_DATE = "D", DATE_THIS_STATUS = "D", DATE_THIS_STATUS = "D",RENEWAL_DATE = "D"))  %>% clean_names()
 
 #Combine exam, endorsement, foreign applicant licenses
@@ -2336,7 +2336,7 @@ Includes exam, endorsement, international (not clear if exam/endorsement), retes
 Includes pending
 Includes renewals
 ```{r}
-state <- read_csv("State data/NM-11.03.2021-clean.csv") %>%
+state <- read_csv("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/NM-11.03.2021-clean.csv") %>%
   clean_names() 
 
 #Calculate processing time
@@ -2406,10 +2406,10 @@ Includes exam, endorsement, competency (renewals?), refresher course, reinstatem
 Doesn't include pending
 Includes renewals, but labelled two different ways, so not going to try and clean
 ```{r}
-#state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/NC-NPRApplicationData.xlsx") %>%
+#state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses//Users/austinfast/Documents/NPR/210908-nursing licenses/State data/NC-NPRApplicationData.xlsx") %>%
 #  clean_names() 
 
-state <- read_excel("State data/NC-NPRApplicationDataV2.xlsx") %>%
+state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/NC-NPRApplicationDataV2.xlsx") %>%
   clean_names() 
 
 #No records have both initial exam and initial endorsement, so can combine them into issue_date, which is empty for all files in V1. V2 has issue date column filled in.
@@ -2598,7 +2598,7 @@ Includes temporary licenses
 Includes pending
 Cannot calculate renewals because didn't have date
 ```{r}
-state <- read_csv("State data/OH-DAS Report - 9_28_2021-clean.csv",
+state <- read_csv("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/OH-DAS Report - 9_28_2021-clean.csv",
                   col_types = cols(.default = "c", `App Submitted Date` = "D", `Issue Date` = "D", `Expiration Date` = "D")) %>%
   clean_names() 
 
@@ -2662,7 +2662,7 @@ Provided estimates and counts from Jan. 1, 2019-Sept. 30, 2020 instead
 In Nov. 4 email, Jackye Ward wrote: The "Other" category includes licensees who submitted an application to change licensure compact status from single state licensure to multistate licensure.  The application type is entitled "Multistate Licensure for Existing Licensee".  The law does not allow for temporary multistate licensure. Individuals granted multistate licensure are fully licensed.
 
 ```{r}
-state <- read_csv ("State data/OK-Copy of NPR Final Data-clean4.csv",
+state <- read_csv ("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/OK-Copy of NPR Final Data-clean4.csv",
                     col_types = cols(.default = "c", `Application submit Date` = "D", `Documents recieved` = "D", IssuanceDate = "D", ExpirationDate = "D") ) %>%
   clean_names()
 
@@ -2725,7 +2725,7 @@ Does not include pending.
 Only most recent renewal data is correct
 Oregon separates foreign educated and domestic -- I combined these 53 foreign applications for standardization with other states
 ```{r}
-state <- read_excel("State data/OR-NPR chart 10-1-21.xlsx") %>% clean_names()
+state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/OR-NPR chart 10-1-21.xlsx") %>% clean_names()
 
 state2 <- state %>%
   arrange (last_name, middle_name, first_name, city, state, application_type, desc(apps_after_1_1_19)) %>%
@@ -2831,27 +2831,27 @@ Reactivations don't calculate correctly
 
 From Rebecca Fuhrman with PA DOS: Above or Below Threshold applies to an application to reactivate or reinstate a license. Below threshold would apply to a reactivation/reinstatement where the license has been expired/inactive/suspended for less than 5 years. Above threshold would apply to reactivation/reinstatement applications where the license has been expired/inactive/suspended for 5 or more years, in which case the continued competency requirements of Sections 21.30a, 21.156a, 21.332a, and 21.725 of the Board's regulations apply. 
 ```{r}
-sheets1 <- excel_sheets(path = "State data/PA/PA-RN APPLICATIONS.xlsx")
-sheets2 <- excel_sheets(path = "State data/PA/PA-LPN APPLICATIONS.xlsx")
+sheets1 <- excel_sheets(path = "/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/PA/PA-RN APPLICATIONS.xlsx")
+sheets2 <- excel_sheets(path = "/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/PA/PA-LPN APPLICATIONS.xlsx")
 
 state <- tibble()
 for (i in sheets1){
   #i <- "Q1 21"
-  step_df <-read_excel("State data/PA/PA-RN APPLICATIONS.xlsx", sheet = i) %>% 
+  step_df <-read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/PA/PA-RN APPLICATIONS.xlsx", sheet = i) %>% 
     clean_names()
     state <- rbind (state, step_df)
 }
 for (i in sheets2){
   #i <- "Q1 21"
-  step_df <-read_excel("State data/PA/PA-LPN APPLICATIONS.xlsx", sheet = i) %>% 
+  step_df <-read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/PA/PA-LPN APPLICATIONS.xlsx", sheet = i) %>% 
     clean_names()
     state <- rbind (state, step_df)
 }
 
-#pa_rn <- read_excel("State data/PA/PA-RN APPLICATIONS.xlsx") %>% clean_names()
-#pa_rn_renew <- read_excel("State data/PA/PA-RN RENEWALS.xlsx") %>% clean_names()
-#pa_lpn <- read_excel("State data/PA/PA-LPN APPLICATIONS.xlsx") %>% clean_names()
-#pa_lpn_renew <- read_excel("State data/PA/PA-LPN RENEWALS.xlsx") %>% clean_names()
+#pa_rn <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/PA/PA-RN APPLICATIONS.xlsx") %>% clean_names()
+#pa_rn_renew <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/PA/PA-RN RENEWALS.xlsx") %>% clean_names()
+#pa_lpn <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/PA/PA-LPN APPLICATIONS.xlsx") %>% clean_names()
+#pa_lpn_renew <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/PA/PA-LPN RENEWALS.xlsx") %>% clean_names()
 
 str(state)
 
@@ -2946,7 +2946,7 @@ Includes exam, endorsement, temporary (by exam, endorsement), renewals (not date
 No renewals
 No pending
 ```{r}
-state <- read_excel("State data/SC-Nursing FOIA Request RESPONSE.xlsx"#, 
+state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/SC-Nursing FOIA Request RESPONSE.xlsx"#, 
                     #skip=1,
                     #col_types = c("text", "text", "text", "text", "text", "text", "text", "text", "date", "date", "text","date", "date")
                     ) %>% 
@@ -2992,6 +2992,165 @@ sc_state %>%
 str(sc_state)
 ```
 
+Import Tennessee
+Includes exam, endorsement
+No pending
+Renewals, reinstatement don't calculate accurately because they preserve initial licensure date
+
+```{r}
+state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/TN-Updated Nursing Data for NPR 02042022 EM.xlsx",
+                    col_types = c("text", "text", "text", "text", "text", "text", "date", "text", "text", "text", "text", "text", "text", "date")) %>% 
+  clean_names()
+
+#Check out what kind of licenses we've got
+state %>% 
+  count (license, initial_or_renewal, type_of_initial_licensure) %>%
+  arrange (desc(n))
+#weirdly, 49001 applications are open and only 901 closed?
+state %>% 
+  count (applcation_status, license_status) %>%
+  arrange (desc(n))
+#17 types of initial licensure
+#3 types of initial or renewal (+ reinstatement + 1 NA)
+state %>% 
+  #count (year, license, initial_or_renewal, type_of_initial_licensure)
+  count (initial_or_renewal, type_of_initial_licensure) #%>%
+#  arrange (desc(n))
+
+#Calculate processing time
+tn_state <- state %>%
+#  select (-date_when_all_required_application_documents_received_if_later_than_initial_application_date_not_tracked) %>%
+  mutate (issue_date = as.Date(format(date_licensed, "%Y-%m-%d")),
+          #current_license_expiration_date = ymd(current_license_expiration_date),
+          app_date = as.Date(format(application_date, "%Y-%m-%d")),
+          month = substr(issue_date, 1,7),
+          year = as.character(year(issue_date)),
+          app_type = case_when (
+    initial_or_renewal=="Initial" & str_detect (type_of_initial_licensure, "EXAM") ~ "Exam", 
+    initial_or_renewal=="Initial" & str_detect (type_of_initial_licensure, "ENDORSEMENT") ~ "Endorsement",
+    initial_or_renewal=="Initial" ~ paste0("Initial-", type_of_initial_licensure),
+    initial_or_renewal=="Reinstatement" ~ "Reinstatement",
+    initial_or_renewal=="Renewal" ~ paste0("Renewal-", type_of_initial_licensure),
+    is.na(initial_or_renewal) ~ "Renewal-Request License",
+    TRUE ~ "???"),
+    process_time = issue_date - app_date,
+    data_state = "TN") %>%
+  rename (lic_type=license)
+   
+tn_state %>% count (app_type) 
+test <- tn_state %>% 
+  filter (app_type == "Initial-RENEWAL ACTIVE")
+
+app_counts <- tn_state %>%
+  count (app_type) %>%
+  rename (total = n)
+
+#how many failed? None!
+tn_state %>%
+  filter ( is.na(process_time))
+
+#12367 negative process times - ALL EXAM/ENDORSEMENT TIMES ARE POSITIVE
+tn_state %>%
+  filter (process_time < 0) %>%
+  count (app_type) %>%
+  full_join (app_counts) %>%
+  mutate (pct_neg = round ( n / total * 100, digits=1)) %>%
+  mutate (pct_neg = replace_na (pct_neg, 0)) %>%
+  arrange (pct_neg)
+
+tn_state %>% 
+  count (lic_type, app_type)
+
+#Any mismatches? 
+tn_state %>% filter (as.Date(application_date) != app_date) 
+tn_state %>% filter (as.Date(date_licensed) != issue_date) 
+
+#Remove unformatted date fields and unnecessary fields
+tn_state <- tn_state %>%
+  select (-c(application_date, date_licensed, type_of_initial_licensure, initial_or_renewal)) %>%
+  rename (lic_status = license_status,
+          application_date = app_date,
+          app_status = applcation_status,
+          name = key_name,
+          last_name = surname,
+          middle_name = second_name,
+          first_name = frst_name) 
+
+tn_state %>%
+  count (lic_type, app_type)
+  #count(lic_type, application_type, app_type) #check they've all coded correctly field
+
+#35,827 are records for repeated people, some up to 28 times. 5000 are repeated EXAM/ENDORSEMENT
+#Checking that repeated license numbers/names are true duplicates
+repeats <- tn_state %>% 
+  filter (app_type %in% c("Exam", "Endorsement")) %>%
+  group_by (license_number) %>%
+  mutate (count=n()) %>%
+  filter (count > 1) %>%
+  arrange (desc(count)) %>%
+  group_by (license_number, count) %>%
+  mutate (lic_app = paste0(lic_type, "-", app_type)) %>%
+  summarise(Type = toString(lic_app),
+            App_Dates = toString(application_date),
+            Issue_Dates = toString(issue_date),
+            Time = toString(process_time)
+            ) %>%
+  separate(Type, into = paste0("Type", 1:4), sep = ", ", fill = "right", extra = "drop") %>%
+  separate(App_Dates, into = paste0("App", 1:4), sep = ", ", fill = "right", extra = "drop") %>%
+  separate(Issue_Dates, into = paste0("Iss", 1:4), sep = ", ", fill = "right", extra = "drop") %>%
+  separate(Time, into = paste0("Time", 1:4), sep = ", ", fill = "right", extra = "drop") %>%
+  ungroup()
+
+#2293 have same times for all applications, meaning they're true duplicates; 48 people have different times, many are just 1 or 0 days, probably re-applied and quickly issued. This code uses longer time.
+repeats %>% 
+  filter (Time1 != Time2) %>% 
+  arrange (desc(count))
+
+str(tn_state)
+
+#Keep only Exam/Endorsement and cut out repeat redcords
+tn_state <- tn_state %>% 
+  filter (app_type %in% c("Exam", "Endorsement"))  %>%
+  #arrange by processing time to keep longest for 48 repeats
+  arrange (license_number, desc(process_time)) %>% 
+  distinct (license_number, .keep_all=T) 
+
+#TESTING TN AVERAGES
+#removes 3741 records from TN dataframe
+valid_data2 <- tn_state %>% 
+  filter (app_type %in% c("Exam", "Endorsement")) %>%
+  filter (process_time > -1) %>% #Keep only valid processing times
+  filter (!is.na(process_time)) %>%
+  filter (year != "2022") %>% #remove Jan/Feb 2022
+  #remove pending apps older than July 2020 (11789 RNs & 1994 LPNs)
+  #filter (!(str_detect(year, "^Pending") & (application_date < as.Date("2020-07-01")))) %>%
+  #Standardize timeframe
+  filter (application_date <= as.Date("2021-09-23")) %>%
+  filter (issue_date <= as.Date("2021-09-23")) 
+
+tn_averages2 <- valid_data2 %>%
+  #arrange by processing time to keep longest for 48 repeats
+  arrange (license_number, desc(process_time)) %>% 
+  distinct (license_number, .keep_all=T) %>%
+  rename (process_time2 = process_time) %>%
+  group_by (data_state, lic_type, app_type, year) %>%
+  summarize (mean = round(mean(process_time2)),
+             median = median (process_time2),
+             count = n(),
+             count_over30days = sum(process_time2 > 30),
+             pct_over30days = count_over30days/count,
+             count_over60days = sum(process_time2 > 60),
+             pct_over60days = count_over60days/count,
+             count_over90days = sum(process_time2 > 90),
+             pct_over90days = count_over90days/count,
+             count_over120days = sum(process_time2 > 120),
+             pct_over120days = count_over120days/count,
+             count_over180days = sum(process_time2 > 180),
+             pct_over180days = count_over180days/count,
+             count_over1year = sum(process_time2 > 365),
+             pct_over1year = count_over1year/count) 
+```
+
 Import Texas
 Includes exam, endorsement, retest (all split by US / foreign)
 No pending
@@ -3008,7 +3167,7 @@ NCLEX Application ñ International Graduates (Including Puerto Rico)
 NCLEX RETEST Application ñ U.S. Graduates
 
 ```{r}
-state <- read_excel("State data/TX-Approved Licenses-USETHIS2.xlsx") %>% 
+state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/TX-Approved Licenses-USETHIS2.xlsx") %>% 
   clean_names()
 
 #Calculate processing time
@@ -3074,7 +3233,7 @@ Includes exam, endorsement, fast-track endorsement (pending only), emergency tem
 Includes pending
 No renewals (not correctly)
 ```{r}
-state <- read_excel("State data/VT-NPR_Nursing_PRR_09-23-21_2021-09-23_20-10-30.xlsx") %>% 
+state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/VT-NPR_Nursing_PRR_09-23-21_2021-09-23_20-10-30.xlsx") %>% 
   clean_names()
 
 str(state)
@@ -3154,12 +3313,12 @@ No pending
 No renewals
 
 ```{r}
-sheets <- excel_sheets(path = "State data/VA-NPR Request RN LPN 30dayapplicationprocessing Jan 1 2019 -Sep 30 2021.xlsx")
+sheets <- excel_sheets(path = "/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/VA-NPR Request RN LPN 30dayapplicationprocessing Jan 1 2019 -Sep 30 2021.xlsx")
 
 state <- tibble()
 for (i in sheets){
   #i <- "Q1 21"
-  step_df <-read_excel("State data/VA-NPR Request RN LPN 30dayapplicationprocessing Jan 1 2019 -Sep 30 2021.xlsx",
+  step_df <-read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/VA-NPR Request RN LPN 30dayapplicationprocessing Jan 1 2019 -Sep 30 2021.xlsx",
                        sheet = i) %>% 
     clean_names() %>%
     mutate (entry_date = as_date(entry_date),
@@ -3213,7 +3372,7 @@ Includes Exam, endorsement, retest, reinstatement, renewal, international, temp(
 Includes pending
 Includes renewals
 ```{r}
-state <- read_csv("State data/WV-NPR Spreadsheet 1-1-19 to 10-7-21-clean.csv") %>% 
+state <- read_csv("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/WV-NPR Spreadsheet 1-1-19 to 10-7-21-clean.csv") %>% 
   clean_names()
 
 #Jan 2, 2019 - Oct. 7, 2021 applications
@@ -3278,7 +3437,7 @@ Includes exam, endorsement
 No pending
 No renewals
 ```{r}
-state_end <- read_excel("State data/WY-Credentials Issued.xlsx RN End.xlsx") %>% 
+state_end <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/WY-Credentials Issued.xlsx RN End.xlsx") %>% 
   clean_names() %>%
   mutate (lic_type = "RN",
           app_type = "Endorsement",
@@ -3287,7 +3446,7 @@ state_end <- read_excel("State data/WY-Credentials Issued.xlsx RN End.xlsx") %>%
           expiration_date = mdy (expiration_date),
           process_time = issue_date - application_date) 
 
-state_exam <- read_excel("State data/WY-Credentials Issued.xlsx RN Exam.xlsx", skip=1) %>% 
+state_exam <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/WY-Credentials Issued.xlsx RN Exam.xlsx", skip=1) %>% 
   clean_names() %>%
   mutate (lic_type = "RN",
           app_type = "Exam",
@@ -3350,10 +3509,10 @@ str(wy_state)
 ```
 
 Standardizing columns
-183 column names from 31 states pared down to 45 columns
+183 column names from 32 states pared down to 45 columns
 ```{r}
 #Compare columns to know which ones to remove from each state dataframe in code above
-all_data <- compare_df_cols (ar_state, ca_state, co_state, ct_state, hi_state, ia_state, il_state, in_state, ky_state, la_state, ma_state, me_state, mi_state, mn_state, ms_state, mt_state, ne_state, nh_state, nj_state, nm_state, nc_state, oh_state, ok_state, or_state, pa_state, sc_state, tx_state, vt_state, va_state, wv_state, wy_state)
+all_data <- compare_df_cols (ar_state, ca_state, co_state, ct_state, hi_state, ia_state, il_state, in_state, ky_state, la_state, ma_state, me_state, mi_state, mn_state, ms_state, mt_state, ne_state, nh_state, nj_state, nm_state, nc_state, oh_state, ok_state, or_state, pa_state, sc_state, tn_state, tx_state, vt_state, va_state, wv_state, wy_state)
 
 names <- all_data %>% select (column_name)
 counts <- apply(all_data, MARGIN = 1, function(x) sum(!is.na(x))) %>%
@@ -3366,7 +3525,7 @@ counts2 <- cbind (names, counts)
 #all_data2 %>% filter (!is.na(suffix) & is.na(name)) #2690 people have a suffix
 
 #Join all state dataframes into one frame 
-all_data2 <- bind_rows (ar_state, ca_state, co_state, ct_state, hi_state, ia_state, il_state, in_state, ky_state, la_state, ma_state, me_state, mn_state, mi_state, mn_state, ms_state, mt_state, ne_state, nh_state, nj_state, nm_state, nc_state, oh_state, ok_state, or_state, pa_state, sc_state, tx_state, vt_state, va_state, wv_state, wy_state) %>%
+all_data2 <- bind_rows (ar_state, ca_state, co_state, ct_state, hi_state, ia_state, il_state, in_state, ky_state, la_state, ma_state, me_state, mn_state, mi_state, mn_state, ms_state, mt_state, ne_state, nh_state, nj_state, nm_state, nc_state, oh_state, ok_state, or_state, pa_state, sc_state, tn_state, tx_state, vt_state, va_state, wv_state, wy_state) %>%
   #Create name column for those without
   mutate (name = case_when (
     is.na(name) & !is.na(suffix) & is.na (middle_name) ~ paste (first_name, last_name, suffix),
@@ -3375,7 +3534,7 @@ all_data2 <- bind_rows (ar_state, ca_state, co_state, ct_state, hi_state, ia_sta
     is.na(name) & is.na(suffix) & !is.na (middle_name) ~ paste (first_name, middle_name, last_name),
     !is.na(name) ~ name),
     #Copy process time into process_time2 for those states where it wasn't needed
-    process_time2 = if_else (data_state %in% c("AR", "IL", "KY", "ME", "MN", "MS", "NC", "OR", "SC", "TX", "VA", "WY"), process_time, process_time2)) %>% 
+    process_time2 = if_else (data_state %in% c("AR", "IL", "KY", "ME", "MN", "MS", "NC", "OR", "SC", "TN", "TX", "VA", "WY"), process_time, process_time2)) %>% 
   #Rearrange columns, leaving out process_time
   select (data_state, lic_type, app_type, name, city, state, process_time2, month, year, application_date, docs_date, issue_date, effective_renewal_date, expiration_date, gather_time, docs_time, app_status, lic_status, license_number, duration, app_month, app_year, app_expiration_date, first_name, middle_name, last_name, suffix, maiden_name, address_line1, address_line2, zip_code, county, date_of_birth, gender, ethnicity, phone, email, school_name, graduation_date, highest_education_level, prelicensure_education_preparation, state_of_original_license, deficient)
 
@@ -3435,17 +3594,17 @@ all_data2 %>%
   filter (lic_type=="Unknown")
 ```
 
-Calculate averages for 31 states that provided usable data
+Calculate averages for 32 states that provided usable data
 ```{r}
-#1,521,346 records (without CA renewals)
+#1,565,686 records (without CA renewals)
 valid_data <- all_data2 %>% 
   filter (process_time2 > -1) %>% #Keep only valid processing times
   filter (!is.na(process_time2)) %>%
-  filter (year != "2022") %>% #remove 266 errors
+  filter (year != "2022") %>% #remove 266 errors and those issued in NC/TN
   #remove pending apps older than July 2020 (11789 RNs & 1994 LPNs)
   filter (!(str_detect(year, "^Pending") & (application_date < as.Date("2020-07-01")))) 
 
-#624,597 records removed (NA + negative)
+#637,877 records removed (NA + negative)
 nrow(all_data2)-nrow(valid_data) 
 #counts <- valid_data %>% 
 #  count (process_time2)
@@ -3723,7 +3882,7 @@ rbind (compare_count, compare_pct)
 
 *** BIG FINDINGS ***
 #Same percentages when filtering out those issued in Oct/Nov/Dec 2021
-In these 31 states, over half (58%) the 219,000 RNs and LPNs issued new licenses Jan. 1-Sept. 23, 2021, waited more than two months (126,006 nurses). Over one-third  (36%) of nurses (78,687) waited more than 3 months to get a new license issued in 2021.
+In these 32 states, over half (57%) the 227,000 RNs and LPNs issued new licenses Jan. 1-Sept. 23, 2021, waited more than two months (129,616 nurses). Over one-third  (35%) of nurses (80,143) waited more than 3 months to get a new license issued in 2021.
 
 Count up totals by RN/LPN (new licenses only) - LPN numbers are slightly slower
 ```{r}
@@ -3988,7 +4147,8 @@ exam_end %>%
   scale_y_continuous(breaks=c(0,30, 60, 90, 120, 150)) +
   theme(axis.text.x = element_text(angle=60, hjust=1))
 ```
-Export graphs of means/medians
+
+Export graphs of means/medians -- uses exam_end at line 4036 (before Connie Jin version)
 ```{r}
 lic_types <- c("RN", "LPN")
 app_types <- c("Exam", "Endorsement")
@@ -4238,7 +4398,7 @@ final2 <- rbind (exam_end_lic_only2, exam_end4) %>%
           `category (license type)`=lic_type,
           `label (application type)`=standard_app_type)
 
-write_csv (final2, "FOR CONNIE-State-summary-lic-type-app-type2.csv")
+write_csv (final2, "FOR CONNIE-State-summary-lic-type-app-type3+NC+TN.csv")
 ```
 
 #Double check counts match for exam/endorsement split
@@ -4258,7 +4418,7 @@ valid_data2 %>%
   mutate (diff = count - raw_count)
 ```
 
-How many new licenses in 2021? ##219052 (excluding re-tests [which skew medians longer], reinstatements, reactivations, etc.)
+How many new licenses in 2021? ##227357 (excluding re-tests [which skew medians longer], reinstatements, reactivations, etc.)
 ```{r}
 avg_counts %>%
   ungroup() %>%
@@ -4330,7 +4490,7 @@ ca_weeks_to_license3 <- ca_weeks_to_license2 %>%
   filter (application_date <= as.Date("2021-09-23"))  %>%
   filter (issue_date <= as.Date("2021-09-23"))  
   
-ca_weeks_to_license4 <- ca_weeks_to_license3 %>%
+ca_weeks_to_license4 <- ca_weeks_to_license2 %>% #change to 3 if want to take only Jan-Sept 2021
   ungroup() %>%
   mutate (week_count = ceiling(as.numeric(process_time2/7))) %>% #always round up
   filter (year=="2021") %>%
@@ -4340,7 +4500,7 @@ ca_weeks_to_license4 <- ca_weeks_to_license3 %>%
 #Create graphic (Jan. 1-Sept. 23)
 rn_graph <- ca_weeks_to_license4 %>%  
   #filter (data_state==state) %>%
-  filter (lic_type %in% c("LPN", "RN")) %>% #"LPN", 
+  filter (lic_type %in% c("RN")) %>% #"LPN", 
   filter (standard_app_type %in% c("Exam", "Endorsement")) %>%
   arrange (standard_app_type, deficient, week_count) %>%
 #  filter (standard_app_type == "Exam") %>%
@@ -4350,11 +4510,11 @@ rn_graph <- ca_weeks_to_license4 %>%
   facet_wrap (deficient ~ standard_app_type, ncol=2, scales='free', 
               labeller = label_wrap_gen(multi_line=FALSE)) + 
  # scale_x_continuous(breaks=c(0,30, 60, 90, 120)) +
-  scale_x_continuous(breaks=seq(0, 53, by = 4.285714),
+  scale_x_continuous(breaks=seq(0, 53, by = (365 / 7 / 12)), #4.34523
                      labels=as.character(seq(0, 12, by = 1)),
                      limits=c(-0.01, 53)) +
   #Add padding so they appear equal width
-  scale_y_continuous(breaks=seq(0, 900, by = 150),
+  scale_y_continuous(breaks=seq(0, 900, by = 150), 
                      limits=c(0,900)
                      #labels = function(x) stringr::str_pad(x, width = 4, pad = "0")
                      ) +
@@ -4373,7 +4533,7 @@ rn_graph <- ca_weeks_to_license4 %>%
 
 print(rn_graph) 
 ggsave(plot = rn_graph,
-       file = paste0("/Users/austinfast/Documents/NPR/210908-nursing licenses/Graphs/CA-RN-JanSept21-deficient-app-type.png"),
+       file = paste0("/Users/austinfast/Documents/NPR/210908-nursing licenses/Graphs/CA-RN-fullyear-deficient-app-type.png"),
        width = 6,
        height = 4
        )
@@ -4394,8 +4554,8 @@ ca_weeks_to_license5 <- ca_weeks_to_license2 %>%
              count = n()) %>%
   group_by (year, data_state, lic_type, standard_app_type) %>%
   mutate (pct = count / sum(count) * 100,
-          med_weeks = ceiling (as.numeric(median21/7)),
-          mean_weeks = ceiling (as.numeric(mean21/7)))
+          med_weeks =  (as.numeric(median21/7)),#ceiling
+          mean_weeks =  (as.numeric(mean21/7)))#ceiling
 
 #What percent of all licenses are deficient? 55% for whole year; 56% for Jan-Sept
 ca_weeks_to_license5 %>%
@@ -4415,7 +4575,45 @@ ca_deficient <- ca_weeks_to_license4 %>%
   mutate (across(2:5, ~replace_na(.x, 0)))
 
 #FOR CONNIE JIN's graphics
-write_csv (ca_deficient, "Nurse licenses-weeks to licensure-CA-deficient-complete.csv")
+write_csv (ca_deficient, "Nurse licenses-weeks to licensure-CA-deficient-FULLYEAR.csv")
+write_csv (ca_weeks_to_license5, "Nurse licenses-weeks to licensure-CA-medians.csv")
+
+#Create stacked chart like Connie's
+rn_graph <- ca_weeks_to_license4 %>%  
+  #filter (data_state==state) %>%
+  filter (lic_type %in% c("RN")) %>% #"LPN", 
+  filter (standard_app_type %in% c("Exam", "Endorsement")) %>%
+  arrange (standard_app_type, deficient, week_count) %>%
+#  filter (standard_app_type == "Exam") %>%
+ # filter (!(standard_app_type %in% c("Reinstatement", "Renewal", "Exam-retest"))) %>%
+  ggplot(aes(x = week_count, y = n, group=lic_type, fill=standard_app_type)) +
+  geom_bar(stat='identity', position='stack') +
+  facet_wrap (~ deficient, ncol=1, scales='free', 
+              labeller = label_wrap_gen(multi_line=FALSE)) + 
+ # scale_x_continuous(breaks=c(0,30, 60, 90, 120)) +
+  scale_x_continuous(breaks=seq(0, 53, by = (365 / 7 / 12)),
+                     labels=as.character(seq(0, 12, by = 1)),
+                     limits=c(-0.5, 53)) +
+  #Add padding so they appear equal width
+  scale_y_continuous(breaks=seq(0,1500, by = 200),#900 Jan-sept #1500 fullyear
+                     limits=c(0,1500)
+                     #labels = function(x) stringr::str_pad(x, width = 4, pad = "0")
+                     ) +
+  #Add median lines
+  geom_vline(data = (ca_weeks_to_license5 %>% filter (lic_type=="RN" & standard_app_type %in% c("Exam", "Endorsement"))), mapping = aes(xintercept = med_weeks)) +
+ # geom_vline(data = (ca_weeks_to_license5 %>% filter (lic_type=="RN" & standard_app_type %in% c("Exam", "Endorsement"))), mapping = aes(xintercept = mean_weeks), color="steelblue", linetype="twodash") +
+ # geom_vline (xintercept = 90, linetype = "dashed", colour = "black") + 
+  labs(x="Months from application to licensure", 
+       y="Count of licensees", 
+       title=paste("New registered nurse licenses issued in CA in 2021"), 
+       fill = "Application Type",
+       #subtitle="Weeks from application submission to license issuance", 
+       caption="Source: California Board of Registered Nursing\nVertical lines represent that group's median processing time.") +#\nIncludes licenses issued Jan. 1 to Sept. 23, 2021.") +
+  theme(axis.text.x = element_text(angle=60, hjust=1)) + 
+  theme(legend.position = "right")
+
+ca_weeks_to_license4 %>%
+  filter (lic_type=="RN" & standard_app_type=="Exam")
 ```
 
 Create histograms of each state's number of weeks to license by license type and application type.
@@ -4472,7 +4670,7 @@ pa <- weeks_to_license %>%
 #write_csv (tx, "Nurse licenses-weeks to licensure-TX.csv")
 #================================================= |
 
-states <- str_to_upper(c("ar", "co", "hi", "ia", "il", "in", "ky", "ma", "me", "mi", "mn", "ms", "mt", "ne", "nh", "nj", "nm", "oh", "ok", "or", "pa", "sc", "tx", "vt", "LA", "WY", "WV", "CT", "VA", "NC", "CA"))
+states <- str_to_upper(c("ar", "co", "hi", "ia", "il", "in", "ky", "ma", "me", "mi", "mn", "ms", "mt", "ne", "nh", "nj", "nm", "oh", "ok", "or", "pa", "sc", "tx", "vt", "LA", "WY", "WV", "CT", "VA", "NC", "CA", "TN"))
 
 #states <- "CT"
 #Other states =  "CT", "VA"

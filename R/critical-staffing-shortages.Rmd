@@ -94,8 +94,10 @@ hospital4a <- hospital4 %>%
   arrange (date) %>% 
   mutate (#days_low_vax = RcppRoll::roll_sum(dplyr::lag(low_vax),14, fill=NA, align="right"),
           #days_low_st_vax = RcppRoll::roll_sum(dplyr::lag(low_st_vax),14, fill=NA, align="right"),
-          roll_avg = zoo::rollmean(pct_yes, k = 7, fill = NA, align = "right")* 100,
-          roll_reporting = zoo::rollmean(pct_reporting, k = 7, fill = NA, align = "right")* 100) 
+          x7_day_rolling_avg_pct_hospitals_anticipating_shortage = zoo::rollmean(pct_yes, k = 7, fill = NA, align = "right")* 100,
+          x7_day_rolling_avg_pct_hospitals_reporting = zoo::rollmean(pct_reporting, k = 7, fill = NA, align = "right")* 100) %>%
+  rename (pct_hospitals_anticipating_shortage = pct_yes,
+          pct_hospitals_reporting = pct_reporting)
 ```
 
 Graph national rate of hospitals anticipating a critical staffing shortage.
@@ -109,8 +111,8 @@ hospital4a %>%
   #filter (state == "TX") %>%
   filter (date > as.Date("2020-07-31")) %>%
   ggplot (aes(x = date)) +
-    geom_line(aes(y = roll_avg), color = "darkred") + 
-  #  geom_line(aes(y = roll_reporting), color="steelblue", linetype="twodash") +
+    geom_line(aes(y = x7_day_rolling_avg_pct_hospitals_anticipating_shortage), color = "darkred") + 
+    geom_line(aes(y = x7_day_rolling_avg_pct_hospitals_reporting), color="steelblue", linetype="twodash") +
     labs(x="Date", 
          y="% of hospitals (7-day rolling average)",
          title="Hospitals anticipating critical staffing shortages within a week", 
@@ -134,5 +136,7 @@ hospital4a %>%
   annotate("rect", xmin=as.Date("2021-12-15"), xmax=as.Date("2022-02-01"), ymin=0, ymax=Inf, alpha=0.2, fill="red") +
   annotate(geom="text", x=as.Date("2022-01-08"), y=2, label="Omicron\nwave", size =3) 
 #  ylim (0, 30)
+
+#write_csv(hospital4a, "hhs_hospitals_anticipating_critical_staffing_shortages.csv")
 ```
 
