@@ -4,7 +4,7 @@ on:
   #push:
   workflow_dispatch:
   schedule:
-    - cron: '*/30 * * * *' # runs every half-hour
+    - cron: '15 17 * * *' # runs at 10:15 a.m. MT, since data updates at noon EST
 
 jobs:
   build:
