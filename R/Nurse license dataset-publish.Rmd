@@ -3,12 +3,14 @@ title: "Nurse licensing dataset-32 states"
 author: "Austin Fast, NPR Investigations"
 date: "03/10/2022"
 output: 
-  html_document:
-    code_folding:  show
+  md_document:
+    variant: "markdown_github"
+#  html_document:
+#    code_folding:  show
     toc: true
     toc_depth: 2
-    toc_float: true
-    theme: united
+#    toc_float: true
+#    theme: united
 ---
 
 ```{r, message=FALSE}
@@ -2906,9 +2908,6 @@ dupe_records %>%
 * Doesn't include pending applications
 * Includes renewals, but labelled two different ways, so not going to try and clean
 ```{r warning=FALSE}
-#state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/../state-data/NC-NPRApplicationData.xlsx") %>%
-#  clean_names() 
-
 state <- read_excel("../state-data/NC-NPRApplicationDataV2.xlsx") %>%
   clean_names() 
 
