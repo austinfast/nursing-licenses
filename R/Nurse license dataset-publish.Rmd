@@ -1,7 +1,7 @@
 ---
 title: "Nurse licensing dataset-32 states"
-author: "Austin Fast, NPR Investigations"
-date: "03/10/2022"
+author: "Austin Fast, NPR Investigations, afast@npr.org"
+date: "March 10, 2022"
 output: 
   html_document:
     code_folding:  show
@@ -35,8 +35,10 @@ This document details NPR's methodology for an investigation that aired March 9,
 
 Two member station reporters produced localized versions and participated in a [reporter roundtable](https://www.npr.org/2022/03/10/1084897499/nurses-are-waiting-months-for-licenses-as-hospital-staffing-shortages-spread) on Morning Edition on March 10, 2022: 
 
-* Jayme Lozano - Texas Tech Public Media (Lubbock, Texas)
-* Brett Sholtis - WITF (Harrisburg, Pa.)
+* [Jayme Lozano - Texas Tech Public Media (Lubbock, Texas)](https://radio.kttz.org/news/2022-03-08/data-shows-nurses-may-face-above-average-processing-times-for-licenses-in-texas)
+* [Brett Sholtis - WITF (Harrisburg, Pa.)](https://urldefense.com/v3/__https://www.witf.org/2022/03/10/nurses-in-pennsylvania-waited-months-to-get-licenses-to-work-during-historic-staffing-shortage/__;!!Iwwt!CynyfQoW6lmpSOB3yyliU9pazriGPwxigcsXmj9ZnJWW0J-33zzjONglotE$)
+
+Full GitHub repo with code, raw data and methodology is at: https://github.com/austinfast/nursing-licenses
 
 # Methodology
 On Sept. 23, 2021, NPR requested records for all licensed practical nurses and registered nurses who applied for licensure from 2019 to 2021 from 54 nursing boards, including every state and the District of Columbia. (California, Louisiana and West Virginia have separate RN and LPN boards.)
@@ -4946,7 +4948,7 @@ exam_end %>%
        #x="State", 
        title="Nurse licenses issued in 2021", 
        subtitle="Median days from application submission to license issuance", 
-       caption="Source: State boards of nursing\n*CT & VA could not separate records by application type.",
+       caption="Source: State boards of nursing\n*CT & VA didn't separate records by application type.",
        fill = "Type") +
   theme(axis.title.y=element_blank()) + 
   scale_y_continuous(breaks=c(0,30, 60, 90, 120)) +
@@ -4970,7 +4972,7 @@ exam_end %>%
        #x="State", 
        title="Nurse licenses issued in 2021", 
        subtitle="Average days from application submission to license issuance", 
-       caption="Source: State boards of nursing\n*CT & VA could not separate records by application type.",
+       caption="Source: State boards of nursing\n*CT & VA didn't separate records by application type.",
        fill = "Type") +
   theme(axis.title.y=element_blank()) + 
   scale_y_continuous(breaks=c(0,30, 60, 90, 120, 150)) +
@@ -4999,7 +5001,7 @@ for (license in lic_types){
        #x="State", 
        title=paste("New", license, "licenses issued by", app, "in 2021"), 
        subtitle=paste(str_to_title(method), "days from application submission to license issuance"), 
-       caption="Source: State boards of nursing\n*CT & VA could not separate records by application type.\nNumber within bar represents count of licenses issued.",
+       caption="Source: State boards of nursing\n*CT & VA didn't separate records by application type.\nNumber within bar represents count of licenses issued.",
        fill = "Type") +
   theme(axis.title.y=element_blank()) + 
   scale_y_continuous(breaks=c(0,30, 60, 90, 120, 150)) +
@@ -5046,7 +5048,7 @@ for (license in lic_types){
        #x="State", 
        title=paste("New", license, "licenses issued by", app, "in 2021"), 
        subtitle=paste(str_to_title(method), "days from application submission to license issuance"), 
-       caption="Source: State boards of nursing\n*CT & VA could not separate records by application type.\nNumber within bar represents count of licenses issued.",
+       caption="Source: State boards of nursing\n*CT & VA didn't separate records by application type.\nNumber within bar represents count of licenses issued.",
        fill = "Type") +
   theme(axis.title.y=element_blank()) + 
   scale_y_continuous(breaks=c(0,30, 60, 90, 120, 150)) +
@@ -5344,7 +5346,7 @@ pa_weeks_to_license2 <- valid_data2 %>% #FOR JAN-SEPT
 
 ### Pennsylvania histogram
 Double-check stacked chart NPR news apps team created.
-![Pennsylvania histogram showing weeks to license nurses](NPR-pa-histogram.png)
+
 ```{r}
 pa_graph <- pa_weeks_to_license %>% 
   #filter (data_state==state) %>%
@@ -5381,8 +5383,14 @@ pa_graph <- pa_weeks_to_license %>%
   theme(legend.position = "right")
 
 print(pa_graph) 
+```
 
-#How many licenses are cut off of chart?? Nearly 400 RNs
+NPR's chart below.
+![Pennsylvania histogram showing weeks to license nurses](NPR-pa-histogram.png)
+
+How many licenses are cut off of chart?? Nearly 400 RNs
+
+```{r}
 pa_weeks_to_license %>%
   filter (week_count > 48) %>%
 #  group_by (lic_type, standard_app_type) %>%
@@ -5842,7 +5850,6 @@ ca_weeks_to_license_full_year %>%
 ```
 
 Export data for NPR's News Apps team and double-check stacked chart NPR news apps team created.
-![California histogram showing weeks to license nurses](NPR-ca-histogram.png)
 
 ```{r}
 ca_weeks_to_license5 <- ca_weeks_to_license5 %>%
@@ -5888,11 +5895,19 @@ rn_graph <- ca_weeks_to_license4 %>%
   theme(legend.position = "right")
 
 print(rn_graph) 
+```
 
+NPR's chart below
+![California histogram showing weeks to license nurses](NPR-ca-histogram.png)
+
+```{r}
+#Can check how many should be in each week
 ca_weeks_to_license4 %>%
   filter (lic_type=="RN" & standard_app_type=="Exam")
+```
 
-#How many licenses are cut off of chart >> 734 nurses
+How many licenses are cut off of right side of chart? 734 nurses
+```{r}
 ca_weeks_to_license4 %>%
   filter (week_count > 48 & lic_type == "RN") %>%
   group_by (lic_type, standard_app_type) %>%
