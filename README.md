@@ -98,11 +98,17 @@ States responded as follows:
 Some boards use different terms for the same idea. For example, licensed practical nurses can also be called licensed vocational nurses, and states refer to licensed nurses applying in a new state as "endorsement" or "reciprocity." NPR standardized these terms among the 32 states' records and combined them into one dataset. 
 
 ## [R/Nurse license dataset-publish.Rmd](https://github.com/austinfast/nursing-licenses/blob/main/R/Nurse%20license%20dataset-publish.Rmd)
+This is the primary R script used in this investigation.
+
 The first states to respond to NPR's request provided records through Sept. 23, 2021, so NPR removed all records after that date from subsequent states to standardize the timeframe. This resulted in a final dataset containing over 226,000 nurses issued new, permanent licenses in 2021.
 
 NPR subtracted the application date from the license issue date to calculate each nurse's processing time in days. We removed 77 nurses' records showing an issue date earlier than their application date, apparently in error. NPR then grouped by state, license type and application type to find median processing times for each of the four major types and to count how many of the nurses' processing times stretched longer than three months, six months, etc.
 
+## [hhs-scraper.py](https://github.com/austinfast/nursing-licenses/blob/main/hhs-scraper.py)
+
+This Python code scrapes daily updates from the U.S. Department of Health and Human Services showing the number of hospitals reporting that they expect a critical staffing shortage within a week. Hospitals define critical staffing shortages based on their own needs and internal policies.
+
 ## [R/critical-staffing-shortages.Rmd](https://github.com/austinfast/nursing-licenses/blob/main/R/critical-staffing-shortages.Rmd)
 
-This document scrapes daily data from the U.S. Department of Health and Human Services showing the number of hospitals reporting that they expect a critical staffing shortage within a week. Hospitals define critical staffing shortages based on their own needs and internal policies.
+This R script charts the number of hospitals reporting that they expect a critical staffing shortage within a week.
 
