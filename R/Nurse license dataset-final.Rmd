@@ -8,11 +8,11 @@ output: html_document
 ```{r}
 library(tidyverse)
 library(janitor)
-library(httr)
-library(rvest)
+#library(httr)
+#library(rvest)
 library(lubridate)
 library(readxl)
-library(tidycensus)
+#library(tidycensus)
 
 options(scipen=999)
 #Set working directory to find data files
@@ -68,7 +68,27 @@ ar_state <- ar_state %>%
 
 ar_state %>%
   count(lic_type, app_type)
+
+#check for duplicate license numbers - AR uses same license number even if nurses have RN & LPN applications and temp/permanent
+#For example, see # 120001
+ar_state %>% filter (license_number=="120001")
+
+#These 14 people have duplicates - only difference is docs received date
+dupe_numbers <- ar_state %>% 
+  count (license_number, lic_type, duration, issue_date, application_date) %>%
+  filter (n > 1) %>%
+  distinct (license_number) %>%
+  pull()
+
+ar_state %>% 
+  filter (license_number %in% dupe_numbers) %>% 
+  View
+
+#Remove these duplicates (22 records)
+ar_state <- ar_state %>% 
+  distinct (license_number, lic_type, duration, issue_date, .keep_all=T)
 ```
+
 Import California - anonymized, providing an entity_id to identify each individual. 
 
 VNs by exam progress through three stages: Exam Request, Exam Results, Initial
@@ -347,7 +367,8 @@ rns2 <- rns %>%
 rns2 %>% ungroup() %>% count (transaction_description)
 
 rns3 <- rns2 %>%
-  filter (transaction_description != "Reapply for RN Exam") %>% #remove 20000 rows of exam-retakes 
+#  filter (transaction_description != "Reapply for RN Exam") %>% #remove 20000 rows of exam-retakes 
+  filter (is.na(retest)) %>%
   filter (!(application_status %in% c("Expired", "Withdrawn", "Denied", "Canceled"))) %>% #remove 17000 rows of abandoned applications (expired); duplicate entries (withdrawn); expired applications (cancelled); and denied
   mutate (count_noretakes = n())
 
@@ -398,7 +419,7 @@ rn_exam2 <- rn_exam %>%
 
 #How many remain open?
 rn_exam2 %>% ungroup() %>% count (application_status, transaction_description)
- 
+
 rn_exam3 <- rn_exam2 %>%
   pivot_wider (id_cols=c(entity_number, city, state, count_noretakes, retest, temp, deficient, licensed),
                names_from = c("transaction_description"),
@@ -507,6 +528,11 @@ ca_state %>%
              pct_over1year = over1year/count ) %>%
   filter (year %in% c("2021", "Pending"))
 
+ca_state %>% 
+  filter (lic_type=="LPN" & app_type=="Endorsement" & year=="2021") %>%
+  filter (process_time2 > 60) %>%
+  nrow()
+  
 #summarize all types together for Jackie Fortier at KPCC
 for_jackie <- ca_state %>%
   filter (app_type != "Exam-retest" & lic_type %in% c("RN", "LPN")) %>%
@@ -546,6 +572,21 @@ ca_state %>%
 
 #REMOVE INTERMEDIARY FILES, leaving ar_state & ca_state
 rm(list=setdiff(ls(), c("start_time", "ar_state", "ca_state")))
+
+#How many total applications by license/app
+
+ca_state %>%
+  filter (app_type != "Exam-retest" & lic_type %in% c("RN", "LPN", "RN-Temp", "LPN-Temp")) %>%
+  #Pending vs. actually licensed
+  filter (year %in% c("2021", "Pending")) %>%
+  #remove pending before Jan. 1, 2021
+  filter (!(str_detect(year, "^Pending") & (application_date < as.Date("2020-12-31")))) %>%
+  #remove pending from 2022
+  filter (!(str_detect(year, "^Pending") & (application_date > as.Date("2021-12-31")))) %>%
+  #filter ((str_detect(year, "^Pending") & between(application_date, as.Date("2021-01-01"), as.Date("2021-12-31")))) %>%
+  #filter (year=="2021" | (str_detect(year, "^Pending") & between(application_date, as.Date("2021-01-01"), as.Date("2021-12-31")))) %>%
+  ungroup() %>%
+  count (lic_type, app_type, year)
 ```
 
 
@@ -629,6 +670,23 @@ str(co_state)
 #co_state2 <- co_state %>% 
 #  mutate (issue_date2 = if_else (initial_license_date == issue_date, 
 #                                issue_date, initial_license_date))
+
+#Check for license number duplicates
+str(state)
+
+#These 211 licenses have duplicates -
+dupe_numbers <- co_state %>% 
+  filter (!is.na(license_number)) %>% #pending apps will show up as NA
+  count (license_number) %>%
+  filter (n > 1) %>%
+  distinct (license_number) %>%
+  pull()
+
+#Duplicate license numbers are all temporary licenses, so no removal necessary
+co_state %>% 
+  filter (license_number %in% dupe_numbers) %>% 
+  count (lic_type, app_type) 
+#  View
 ```
 
 Import Connecticut
@@ -701,6 +759,20 @@ str(ct_state)
 #ct_state %>%
  # filter (!(is.na(business_name)|business_name=="NULL"))
 #  filter (!is.na(fax_number))
+
+#Check for license number duplicates
+str(state)
+
+#No duplicates (other than NA license_number) 
+dupe_numbers <- ct_state %>% 
+  count (license_number) %>%
+  filter (n > 1) 
+#NA license_numbers are all pending, expired, inactive, etc.
+ct_state %>%
+  filter (is.na(license_number)) %>%
+  count (lic_type, app_type, app_status)
+
+#No duplicate removal necessary
 ```
 
 IMPORT HAWAII
@@ -870,6 +942,26 @@ hi_state %>%
   count (lic_type, app_type)
 
 str(hi_state)
+
+#Check for license number duplicates
+str(state)
+
+#376 duplicate license numbers; drops to 51 after removing negative process times 
+dupe_numbers <- hi_state %>% 
+  filter (!is.na(license_number)) %>% #removes pending licenses
+  filter (process_time2 > -1) %>% #remove negative times, errors
+  count (license_number) %>%
+  filter (n > 1) %>%
+  distinct (license_number) %>%
+  pull()
+
+#Pull records for these duplicated people -- they all have different application types, except RN-100636-0	has two renewal-unknowns
+hi_state %>%
+  filter (license_number %in% dupe_numbers) %>%
+  count (license_number, app_type) %>%
+  filter (n > 1)
+
+#No duplicate removal necessary
 ```
 Import Illinois 
 * includes Exam, endorsement 
@@ -963,12 +1055,20 @@ str(il_state)
 #il_state %>%
  # filter (!(is.na(business_name)|business_name=="NULL"))
 #  filter (!is.na(fax_number))
+
+#Check for license number duplicates
+str(state)
+
+#No duplicates, so no removal necessary
+dupe_numbers <- il_state %>% 
+  count (license_number) %>%
+  filter (n > 1)
 ```
 
 Import Iowa - includes Exam, Endorsement, Re-Exam, Reactivation, Renewal
 Includes pending
 
-Only two temporary included in duration field, contains mixed endorsement/exam for some reason
+Duration field is not useful -- contains almost all permanent, only 2 temporary licenses, plus  803 endorsement and 791 Examination for some reason
 ```{r}
 state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/IA-Records Request.xlsx") %>% clean_names()
 
@@ -1023,7 +1123,48 @@ ia_state %>%
   count(lic_type, app_type)
 
 str(ia_state)
+
+#Check for license number duplicates -- license number not included, using name, city and license type instead
+str(ia_state)
+
+#These 908 records have duplicates -
+dupe_numbers <- ia_state %>% 
+ # filter (!is.na(license_number)) %>% #pending apps will show up as NA
+  group_by (first_name, middle_name, last_name, city, lic_type, app_type) %>%
+  mutate (n = n()) %>%
+  filter (n > 1) %>%
+  arrange (last_name, first_name, middle_name, city, lic_type, app_type)
+
+#Most are exam-retests
+dupe_numbers %>% ungroup() %>% count (app_type) %>% arrange (desc(n))
+#417 have the same processing time, meaning they're true duplicates
+#Only four people have differing dates/process times, only one is a pending endorsement, others are reinstatements
+dupe_numbers2 <- dupe_numbers %>% 
+  ungroup() %>%
+  group_by (first_name, middle_name, last_name, city, lic_type, app_type, process_time2) %>%
+  mutate (count = n()) %>%
+#  filter (count == 1) #
+ filter (count > 1) #to see those with repeating process_time2
+
+#Duplicate license numbers are all temporary licenses, so no removal necessary
+ia_state2 <- ia_state %>% 
+  distinct (first_name, middle_name, last_name, city, lic_type, app_type, process_time2, .keep_all=T)
+#  filter (license_number %in% dupe_numbers) %>% 
+#  count (lic_type, app_type) 
+#  View
+
+#Every person has a match after removing duplicates, so should be OK
+anti_join (ia_state, ia_state2, by = c("first_name", "middle_name", "last_name", "city", "lic_type", "app_type", "process_time2")) %>% View
+
+#For example, Heather Lynn ALTEMEIER of West Des Moines, IA has duplicate records in ia_state, but not in ia_state2
+ia_state %>% filter (first_name=="HEATHER" & last_name=="ALTEMEIER" & city=="WEST DES MOINES")
+ia_state2 %>% filter (first_name=="HEATHER" & last_name=="ALTEMEIER" & city=="WEST DES MOINES")
+
+#Rename to join to full dataset
+ia_state <- ia_state2
+rm(ia_state2)
 ```
+
 Import Indiana
 Includes Exam, Endorsement. Only includes pending/denied reinstatements (232) & renewals (14).
 Includes 3959 temp licenses.
@@ -1090,6 +1231,21 @@ in_state %>%
   count (lic_type, app_type)
 
 str(in_state)
+
+#Check for license number duplicates
+str(state)
+
+#1 license is duplicated
+dupe_numbers <- in_state %>% 
+  filter (!is.na(license_number)) %>% #pending apps will show up as NA
+  count (license_number) %>%
+  filter (n > 1) %>%
+  distinct (license_number) %>%
+  pull()
+
+#Only one license number is duplicated. First application was denied and reinstatement pending, so no removal necessary
+in_state %>% 
+  filter (license_number %in% dupe_numbers)
 ```
 
 Import Kentucky
@@ -1297,6 +1453,16 @@ ky_state %>%
   count(lic_type, app_type)
 
 str(ky_state)
+
+#Check for license number duplicates
+str(state)
+
+#No license numbers are duplicated. No removal necessary.
+dupe_numbers <- ky_state %>% 
+  #filter (!is.na(ky_license_number)) %>% #pending apps will show up as NA
+  group_by (license_number) %>%
+  mutate (n = n()) %>%
+  filter (n > 1) 
 ```
 
 
@@ -1355,6 +1521,41 @@ la_state %>%
   count(lic_type, app_type)
 
 str(la_state)
+
+
+#Check for license number duplicates
+str(state)
+
+dupe_numbers <- la_state %>% 
+  filter (!is.na(process_time2)) %>% #pending apps will show up as NA
+  group_by (first_name, middle_name, last_name, city, lic_type, app_type) %>%
+  mutate (n = n()) %>%
+  filter (n > 1) %>%
+  arrange (last_name, first_name, middle_name, city, lic_type, app_type)
+
+dupe_numbers %>% ungroup() %>% count (app_type) %>% arrange (desc(n))
+#57 have the same processing time, meaning they're true duplicates
+dupe_numbers2 <- dupe_numbers %>% 
+  ungroup() %>%
+  group_by (first_name, middle_name, last_name, city, lic_type, app_type, process_time2) %>%
+  mutate (count = n()) %>%
+#  filter (count == 1) #
+ filter (count > 1) #to see those with repeating process_time2
+
+#Duplicate license numbers are all temporary licenses, so no removal necessary
+la_state2 <- la_state %>% 
+  distinct (first_name, middle_name, last_name, city, lic_type, app_type, process_time2, .keep_all=T)
+
+#Every person has a match after removing duplicates, so should be OK
+anti_join (la_state, la_state2, by = c("first_name", "middle_name", "last_name", "city", "lic_type", "app_type", "process_time2")) %>% View
+
+#For example, Heather Lynn ALTEMEIER of West Des Moines, IA has duplicate records in ia_state, but not in ia_state2
+la_state %>% filter (first_name=="EDITH" & last_name=="CAMPBELL" & city=="Abbeville")
+la_state2 %>% filter (first_name=="EDITH" & last_name=="CAMPBELL" & city=="Abbeville")
+
+#Rename to join to full dataset
+la_state <- la_state2
+rm(la_state2)
 ```
 
 Import Massachusetts - little tricky because I had to match application dates with license dates by their name rather than an ID number
@@ -1627,6 +1828,14 @@ ma_state %>%
   count (year)
 
 str(ma_state)
+
+#Check for license number duplicates
+#No license numbers are duplicated. No removal necessary.
+dupe_numbers <- ma_state %>% 
+  filter (!is.na(license_number)) %>% #pending apps will show up as NA
+  group_by (license_number) %>%
+  mutate (n = n()) %>%
+  filter (n > 1) 
 ```
 
 Import Maine
@@ -1690,6 +1899,34 @@ me_state %>%
   count(lic_type, app_type, year)
 
 str(me_state)
+
+#Check for license number duplicates
+#4 license numbers are duplicated.
+dupe_numbers <- me_state %>% 
+  filter (!is.na(license_number)) %>% #pending apps will show up as NA
+  group_by (license_number) %>%
+  mutate (n = n()) %>%
+  filter (n > 1) %>%
+  arrange (license_number, application_date)
+
+dupe_numbers <- dupe_numbers %>% pull(license_number)
+
+#Pull out correct row of duplicated lines
+me_state2 <- me_state %>%
+  filter (license_number %in% dupe_numbers) %>%
+  group_by (license_number) %>%
+  slice_head()
+
+#Remove all rows of these duplicated lines, and then add back in correct ones
+me_state3 <- me_state %>%
+  filter (!(license_number %in% dupe_numbers)) %>%
+  rbind (me_state2)
+  
+#check correct records remain
+me_state3 %>% filter (license_number %in% dupe_numbers)
+
+me_state <- me_state3 
+rm (me_state3, me_state2, pending_me)
 ```
 
 IMPORT MICHIGAN
@@ -1764,6 +2001,30 @@ mi_state %>%
   count(lic_type, app_type)
 
 str(mi_state)
+
+#Check for license number duplicates
+#4 license numbers are duplicated.
+dupe_numbers <- mi_state %>% 
+  filter (!is.na(license_number)) %>% #pending apps will show up as NA
+  group_by (license_number) %>%
+  mutate (n = n()) %>%
+  filter (n > 1) %>%
+  arrange (license_number, application_date)
+
+#Lots of duplicate numbers, but most are renewals and reinstatements, which all have negative process times anyway
+dupe_numbers %>% 
+  filter (process_time2 > -1) %>%
+  ungroup() %>% 
+  count (lic_type, app_type) %>%
+  arrange (desc(n))
+
+dupe_numbers %>% filter (process_time2 > -1)
+dupe_numbers2 <- dupe_numbers %>%
+  filter (process_time2 > -1) %>% #Keep only positive process times 
+  mutate (count = n()) %>% #recount
+  filter (count > 1) #Find true duplicates, those with more than one exam/endorsement
+
+#Keeps only one person, and one record is renewal, so no duplicate removal necessary.
 ```
 
 IMPORT MINNESOTA - only in this markdown document
@@ -1855,6 +2116,51 @@ mn_state %>%
   count(lic_type, app_type, year)
 
 str(mn_state)
+
+#Check for license number duplicates
+#4 license numbers are duplicated.
+dupe_numbers <- mn_state %>% 
+  filter (!is.na(process_time)) %>% #pending apps will show up as NA
+  group_by (first_name, middle_name, last_name, city, lic_type, app_type) %>%
+  mutate (n = n()) %>%
+  filter (n > 1) %>%
+  arrange (last_name, first_name, middle_name, city, lic_type, app_type)
+
+#Lots of duplicate numbers, but most are renewals and reinstatements, which all have negative process times anyway
+dupe_numbers %>% 
+  filter (process_time > -1) %>%
+  ungroup() %>% 
+  count (lic_type, app_type) %>%
+  arrange (desc(n))
+
+dupe_numbers %>% filter (process_time > -1)
+#34 duplicate license_number records 
+dupe_numbers2 <- dupe_numbers %>%
+  filter (!(app_type %in% c("Renewal", "Reinstatement"))) %>% #Remove renewals/reinstatements, which will obviously have repeating license numbers
+  filter (process_time > -1 ) %>% #Keep only positive process times 
+  mutate (count = n()) %>% #recount
+  filter (count > 1) %>% #Find true duplicates, those with more than one exam/endorsement
+  arrange (last_name, first_name, middle_name, city, lic_type, app_type, application_date)
+#Only Unknown-Temp has duplicates, many of which have one very long process time and one very short. Will keep first application date.
+
+#remove 17 duplicates
+dupe_numbers2 <- dupe_numbers2 %>%
+  slice_tail(n=1)
+  
+#Remove 17 wrong rows from mn_state
+mn_state2 <- mn_state %>%
+  anti_join (dupe_numbers2, by = c("last_name", "first_name", "middle_name", "city", "lic_type", "app_type", "process_time"))
+
+nrow(mn_state2) - nrow(mn_state)
+
+#1 row has two records with same process time, and both get removed. This re-adds it
+missing <- anti_join (mn_state, mn_state2) %>%
+  filter(row_number()==2)
+
+mn_state <- mn_state2 %>%
+  rbind (missing)
+
+rm(mn_state2, dupe_numbers2, dupe_numbers, missing, repeats)
 ```
 
 IMPORT MISSISSIPPI
@@ -1910,6 +2216,14 @@ ms_state %>%
   count(lic_type, app_type)
 
 str(ms_state)
+
+#Six records have duplicates -- all are renewals with negative processing times, so no removal necessary.
+dupe_numbers <- ms_state %>% 
+ # filter (!is.na(license_number)) %>% #pending apps will show up as NA
+  group_by (name, city, lic_type, app_type) %>%
+  mutate (n = n()) %>%
+  filter (n > 1) %>%
+  arrange (name, city, lic_type, app_type)
 ```
 
 IMPORT MONTANA DATA
@@ -2108,6 +2422,12 @@ averages %>%
 mt_state %>%
   count (lic_type, app_type)
 str(mt_state)
+
+#No duplicate numbers
+dupe_numbers <- mt_state %>% 
+  filter (!is.na(license_number)) %>% #pending apps will show up as NA
+  count (license_number) %>%
+  filter (n > 1)
 ```
 
 Import Nebraska
@@ -2176,6 +2496,20 @@ ne_state %>%
   count(lic_type, app_type)
 
 str(ne_state)
+
+#Check for license number duplicates -- license number not included, using name, city and license type instead
+str(ne_state)
+
+#These 21 records have duplicates -
+dupe_numbers <- ne_state %>% 
+  filter (!is.na(process_time2)) %>% #pending apps will show up as NA
+  group_by (first_name, middle_name, last_name, city, lic_type, app_type) %>%
+  mutate (n = n()) %>%
+  filter (n > 1) %>%
+  arrange (last_name, first_name, middle_name, city, lic_type, app_type)
+
+#All are temporary/provisional/refresher temporary licenses, so likely they were given multiple times to nurses. No removal necessary.
+dupe_numbers %>% ungroup() %>% count (lic_type, app_type) %>% arrange (desc(n))
 ```
 
 Import New Hampshire
@@ -2233,11 +2567,48 @@ nh_state <- nh_state %>%
   rename (docs_date = checklist_complete_date,
           lic_status = license_status) 
 
-nh_state %>%
-  #count(lic_type, renewal_app, app_type) #check for mistakes with renewal_app field
-  count(lic_type, app_type)
-
 str(nh_state)
+
+#2830 duplicated names
+dupe_numbers <- nh_state %>% 
+  count (name, lic_type, app_type) %>%
+  filter (n > 1) %>% 
+  pull (name)
+
+dupe_records <- nh_state %>%
+  filter (name %in% dupe_numbers)
+
+nh_state2 <- nh_state %>% 
+  distinct (name, lic_type, app_type, process_time2, .keep_all=T) #Remove duplicates with exact same name, license/application type and processing time
+#Removed 2915 rows -- too many?
+nrow(nh_state)-nrow(nh_state2)
+
+#reduced to 9 duplicated names
+dupe_numbers2 <- nh_state2 %>% 
+  filter (!is.na(process_time2)) %>% #removes those that didn't calculate anyway
+  count (name, lic_type, app_type) %>%
+  filter (n > 1) %>%
+  pull (name)
+  
+#All of the remaining duplicates have one active and one pending, so no further removal necessary
+dupe_numbers3 <- nh_state2 %>% 
+  filter (name %in% dupe_numbers2)
+
+#Compare how many duplicates were removed from each year
+nh_state %>%
+  filter (year > "2018") %>%
+  #count(lic_type, renewal_app, app_type) #check for mistakes with renewal_app field
+  count(year, lic_type, app_type)# %>%
+#  View()
+nh_state2 %>%
+  filter (year > "2018") %>%
+  #count(lic_type, renewal_app, app_type) #check for mistakes with renewal_app field
+  count(year, lic_type, app_type) #%>%
+#  View()
+
+#Rename and remove dataframes
+nh_state <- nh_state2
+rm(nh_state2, dupe_numbers3, dedupe, dupe_records, dupe_numbers, dupe_numbers2)
 ```
 
 IMPORT NEW JERSEY DATA
@@ -2329,6 +2700,28 @@ nj_state %>%
   count(lic_type, app_type)
 
 str(nj_state)
+
+#These 39 licenses have duplicates -
+dupe_numbers <- nj_state %>% 
+  filter (!is.na(license_number)) %>% #pending apps will show up as NA
+  count (license_number) %>%
+  filter (n > 1) %>%
+  distinct (license_number) %>%
+  pull()
+
+#Duplicate license numbers are mostly reinstatements
+nj_state %>% 
+  filter (license_number %in% dupe_numbers) %>% 
+  count (lic_type, app_type) 
+
+#Remove reinstatements and rerun and no duplicates are found, so no removal necessary
+dupe_numbers <- nj_state %>% 
+  filter (!is.na(license_number)) %>% #pending apps will show up as NA
+  filter (app_type != "Reinstatement") %>%
+  count (license_number) %>%
+  filter (n > 1) %>%
+  distinct (license_number) %>%
+  pull()
 ```
 
 IMPORT NEW MEXICO DATA - Second try after NM resent data
@@ -2399,6 +2792,25 @@ nm_state %>%
   count(lic_type, app_type)
 
 str(nm_state)
+
+#12,000+ duplicates, but mostly renewals/reinstatements
+dupe_numbers <- nm_state %>% 
+  filter (!(app_type %in% c("Reinstatement", "Renewal"))) %>% #reduces dupes to 1201 names
+  filter (!is.na(process_time2)) %>% #pending apps will show up as NA - reduces to 48 names
+  count (name, lic_type, app_type) %>%
+  filter (n > 1) %>%
+  distinct (name) %>%
+  pull()
+
+dupe_records <- nm_state %>%
+  filter (name %in% dupe_numbers) %>%
+  filter (!is.na(process_time)) #%>% #pending apps will show up as NA - reduces to 48 names
+
+#Small number are real duplicates, but most of these have two issue dates and the same application date or vice-versa. I cannot determine which one is the real one, and it's less than 100 records, so I'll leave as is.
+dupe_records %>%
+  distinct (name, lic_type, app_type, application_date, issue_date, .keep_all=T) %>%
+  arrange (name) #%>%
+#  view
 ```
 
 IMPORT NORTH CAROLINA - 
@@ -2583,13 +2995,25 @@ nc_state <- state5 %>%
           year = as.character(year)) %>%
   select (-c(initial_exam, initial_endorsement, last_renewal, last_reactivation, last_reinstatment, app_sumbit_date, doc_received, license_type)) %>% 
   rename (duration = license_duration, 
-          lic_status = license_status) %>%
+          lic_status = license_status,
+          city = addr_city,
+          state = addr_state) %>%
   ungroup() 
 
 nc_state %>%
   count(lic_type, app_type)
 
 rm (state2, state3, negatives, jones, nc_multiples2, nc_multiples1, nc_multiples)
+
+glimpse(nc_state)
+
+#Zero duplicates, so no removal necessary
+dupe_numbers <- nc_state %>% 
+ # filter (!is.na(license_number)) %>% #pending apps will show up as NA
+  group_by (first_name, middle_name, last_name, city, lic_type, app_type) %>%
+  mutate (n = n()) %>%
+  filter (n > 1) %>%
+  arrange (last_name, first_name, middle_name, city, lic_type, app_type)
 ```
 
 IMPORT OHIO DATA
@@ -2650,6 +3074,13 @@ oh_state %>%
   count(lic_type, app_type)
 
 str(oh_state)
+
+#Zero duplicates - no removal necessary
+dupe_numbers <- oh_state %>% 
+  count (license_number) %>%
+  filter (n > 1) %>%
+  distinct (license_number) %>%
+  pull()
 ```
 
 Import Oklahoma data
@@ -2716,6 +3147,17 @@ ok_state %>%
   count(lic_type, app_type)
 
 str(ok_state)
+
+#These 360 records have duplicates -
+dupe_numbers <- ok_state %>% 
+  filter (!is.na(process_time)) %>% #removes pending/null duration
+  group_by (first_name, middle_name, last_name, city, lic_type, app_type) %>%
+  mutate (n = n()) %>%
+  filter (n > 1) %>%
+  arrange (last_name, first_name, middle_name, city, lic_type, app_type)
+
+#Leaves only renewal, no removal necessary
+dupe_numbers %>% ungroup() %>% count (app_type) %>% arrange (desc(n))
 ```
 
 Import Oregon data 
@@ -2821,7 +3263,18 @@ or_state %>%
   #count(lic_type, application_type, app_type) #check for mistakes with renewal_app field
   count(lic_type, app_type)
 
-str(or_state)
+glimpse(or_state)
+
+#These 52 records have duplicates -
+dupe_numbers <- or_state %>% 
+  filter (!is.na(process_time)) %>% #removes pending
+  group_by (first_name, middle_name, last_name, city, lic_type, app_type) %>%
+  mutate (n = n()) %>%
+  filter (n > 1) %>%
+  arrange (last_name, first_name, middle_name, city, lic_type, app_type)
+
+#Leaves only reinstatement, no removal necessary
+dupe_numbers %>% ungroup() %>% count (app_type) %>% arrange (desc(n))
 ```
 
 Import Pennsylvania
@@ -2939,6 +3392,21 @@ str(pa_state)
   #filter (application_license_type=="Practical Nurse" & license_type_issued=="Graduate Practical Nurse Permit")
 #  filter (application_license_type=="Registered Nurse" & license_type_issued=="Registered Nurse" & obtained_by=="Application") #%>% 
 #  count (application_type)
+
+#These 741 records have duplicates -
+dupe_numbers <- pa_state %>% 
+  filter (!is.na(process_time)) %>% #removes pending/null duration
+  group_by (name, city, lic_type, app_type) %>%
+  mutate (n = n()) %>%
+  filter (n > 1) %>%
+  arrange (name, city, lic_type, app_type)
+
+#737 are reinstatements
+dupe_numbers %>% ungroup() %>% count (app_type) %>% arrange (desc(n))
+
+#Only two endorsements are duplicated. Cannot determine which is correct, so will leave. 
+dupe_numbers <- dupe_numbers %>%
+  filter (process_time2 > -1)
 ```
 
 Import South Carolina
@@ -2990,6 +3458,14 @@ sc_state %>%
   #count(lic_type, application_type, app_type) #check they've all coded correctly field
 
 str(sc_state)
+
+#These 2 records have duplicates - different application dates, issue dates. Will leave as is.
+dupe_numbers <- sc_state %>% 
+  filter (!is.na(process_time)) %>% #removes pending/null duration
+  group_by (first_name, middle_name, last_name, city, lic_type, app_type) %>%
+  mutate (n = n()) %>%
+  filter (n > 1) %>%
+  arrange (last_name, first_name, middle_name, city, lic_type, app_type)
 ```
 
 Import Tennessee
@@ -3108,7 +3584,7 @@ repeats %>%
 
 str(tn_state)
 
-#Keep only Exam/Endorsement and cut out repeat redcords
+#Keep only Exam/Endorsement and cut out repeat records
 tn_state <- tn_state %>% 
   filter (app_type %in% c("Exam", "Endorsement"))  %>%
   #arrange by processing time to keep longest for 48 repeats
@@ -3170,6 +3646,41 @@ NCLEX RETEST Application ñ U.S. Graduates
 state <- read_excel("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/TX-Approved Licenses-USETHIS2.xlsx") %>% 
   clean_names()
 
+tx_temp <- read_csv ("/Users/austinfast/Documents/NPR/210908-nursing licenses/State data/TX-ApplicationsWithoutLicensure.csv") %>% 
+  clean_names()
+
+#They're all either endorsement or exam
+tx_temp %>%
+  count(license_application_type, basis_for_licensure)
+tx_temp %>%
+  count (license_type_name_1)
+#Standardize license and app type
+tx_temp2 <- tx_temp %>%
+  mutate (app_type = case_when (
+    str_detect (basis_for_licensure, "Exam") ~ "Exam",
+    str_detect (basis_for_licensure, "Endorsement") ~ "Endorsement"),
+    lic_type = case_when ( 
+      license_type_name_1 %in% c("LVN", "LVN/LPN") ~ "LPN",
+      license_type_name_1=="RN" ~ "RN") )
+tx_temp2 %>% count (lic_type, app_type)
+#19 pending statuses
+tx_temp2 %>% count (application_status)
+
+tx_temp3 <- tx_temp2 %>% 
+  #remove those obviously not still pending (expired, denied, withdrawn, etc)
+  filter(application_status %in% c("Processing", "Ready to issue", "Retest", "PROC.GN", "PASSED.EX", "On Hold", "Approved-Retest", "APPL.REC", "APPLCNT")) %>%
+  mutate (application_date = ymd(submitdate),
+          data_state = "TX",
+          year = "Pending as of 10/01/2021") %>%
+  filter (application_date >= as.Date("2020-06-15")) %>% #Keep only this applications after system migration
+  mutate (process_time = as.Date("2021-10-01") - application_date) %>%
+  rename (state = state_or_territory,
+          lic_status = application_status) %>%
+  select (-c(license_type_name_1, license_application_type, basis_for_licensure, license_type_name, submitdate))
+
+tx_temp3 %>%
+  count (lic_type, app_type, lic_status)
+
 #Calculate processing time
 tx_state <- state %>%
   select (-date_when_all_required_application_documents_received_if_later_than_initial_application_date_not_tracked) %>%
@@ -3201,6 +3712,9 @@ tx_state <- state %>%
     data_state = "TX") %>%
   filter (application_date > as.Date("2020-06-15")) 
 
+#Check columns in pending dataframe match issued
+comparing <- compare_df_cols(tx_temp3, tx_state)
+
 tx_state %>% 
   count (lic_type, app_type)
 
@@ -3217,13 +3731,39 @@ tx_state <- tx_state %>%
   select (-c(license_type_name, license_application_template_name, original_issuance_date, initial_type, submit_date_available, submit_date_placeholder_data_used_for_migration_during_major_system_update_in_june_2020)) %>% 
   rename (state = state_or_territory,
           expiration_date = current_license_expiration_date, 
-          lic_status = status)
+          lic_status = status) %>%
+  bind_rows (tx_temp3) #Add pending records
 
 tx_state %>%
   count (lic_type, app_type)
   #count(lic_type, application_type, app_type) #check they've all coded correctly field
 
 str(tx_state)
+
+#These 128 records are duplicates - but most of them have one RN and one LPN
+dupe_numbers <- tx_state %>% 
+  filter (!(app_type %in% c("Reinstatement", "Renewal"))) %>%
+  filter (!is.na(license_number)) %>% #pending apps will show up as NA
+  group_by (license_number) %>%
+  mutate (n = n()) %>%
+  filter (n > 1) %>%
+  arrange (license_number)
+
+#Duplicate license numbers are mostly renewal
+dupe_numbers %>% 
+  ungroup() %>%
+  count (lic_type, app_type) %>%
+  arrange (desc(n))
+#  View
+
+#How many have 1 RN + 1 LPN record? Must have applied for both at once?
+#Only six records are of same license type/application type and have very negative processing times, so they'll be filtered out anyway. 
+#No removal necessary.
+dupe_numbers %>%
+  group_by (license_number, lic_type, app_type) %>%
+  mutate (n=n()) %>%
+  filter (n >1) #%>%
+#  view
 ```
 
 Import Vermont data emailed from Gabriel M. Gilman, General Counsel
@@ -3305,6 +3845,14 @@ vt_state %>%
   #count(lic_type, application_type, app_type) #check they've all coded correctly field
 
 str(vt_state)
+
+#These 8 records have duplicates -
+dupe_numbers <- vt_state %>% 
+  filter (!is.na(license_number)) %>% #pending apps will show up as NA
+  group_by (license_number) %>%
+  mutate (n=n()) %>%
+  filter (n > 1) %>%
+  arrange (license_number) 
 ```
 
 IMPORT VIRGINIA -- anonymized data
@@ -3364,6 +3912,30 @@ va_state %>%
   count (lic_type, app_type)
 
 str(va_state)
+
+#Virginia claims to process 99% of applications within 30 days, but that's 30 days from getting marked complete.
+#docs_time records how many days from being marked complete till they were issued. This confirms their claim, but also shows only #24.7% of the applications were issued within 30 calendar days from their submission.
+va_summary <- va_state %>% 
+  filter (year=="2021") %>%
+  group_by (lic_type, year) %>%
+  summarize (count = n(),
+             count_within_30 = sum(process_time <= 30),
+             pct = count_within_30 / count,
+             docs_within_30 = sum(docs_time <= 30),
+             docs_pct = docs_within_30 / count)
+
+#What percent of VA's 2021 applicants were licensed within 30 calendar days of their application?
+(144 + 1856) / (1051 + 7050) #24.7%, with all data (through 09-30)
+( va_summary[va_summary$lic_type=="LPN", "count_within_30"] + va_summary[va_summary$lic_type=="RN", "count_within_30"] ) / 
+( va_summary[va_summary$lic_type=="LPN", "count"] + va_summary[va_summary$lic_type=="RN", "count"] ) 
+
+(139 + 1778) / (1024 + 6889) #24.2%, standardizing with other states
+
+va_state %>%
+  filter (year=="2021" & process_time <= 30 & lic_type %in% c("RN", "LPN")) %>%
+  nrow()
+
+#CANNOT CHECK FOR DUPLICATES BECAUSE NO IDENTIFYING INFORMATION PROVIDED FROM STATE
 ```
 
 Import West Virginia data (RNs only)
@@ -3430,6 +4002,29 @@ wv_state %>%
   count(lic_type, app_type) #check they've all coded correctly 
 
 str(wv_state)
+
+#These 70408 records have duplicates -
+dupe_numbers <- wv_state %>% 
+ # filter (!is.na(license_number)) %>% #pending apps will show up as NA
+  group_by (first_name, middle_name, last_name, city, lic_type, app_type) %>%
+  mutate (n = n()) %>%
+  filter (n > 1) %>%
+  arrange (last_name, first_name, middle_name, city, lic_type, app_type)
+
+#Most are renewals, which will fall out anyway
+dupe_numbers %>% ungroup() %>% count (app_type) %>% arrange (desc(n))
+
+#535 records have duplicates that AREN'T renewal or reinstatements, but they've all been voided or expired and only one issued
+dupe_numbers2 <- dupe_numbers %>% 
+  ungroup() %>%
+  filter (!(app_type %in% c("Renewal", "Reinstatement"))) %>%
+  filter (!is.na(process_time)) %>% #removes all duplicates
+  group_by (first_name, middle_name, last_name, city, lic_type, app_type) %>%
+  mutate (count = n()) %>%
+#  filter (count == 1) #
+ filter (count > 1) 
+
+#No removal necessary
 ```
 Import Wyoming data (RNs only)
 
@@ -3506,7 +4101,19 @@ wy_state %>%
   count(lic_type, app_type) #check they've all coded correctly 
 
 str(wy_state)
+
+#No duplicate license numbers. No removal necessary.
+dupe_numbers <- wy_state %>% 
+  group_by (license_number) %>%
+  mutate (n=n()) %>%
+  filter (n>1)
 ```
+REMOVE ALL INTERMEDIARY DATAFRAMES
+```{r}
+save_these=(ls() %>% as.data.frame() %>% filter (str_detect(., "_state$")) %>% pull())
+rm(list=setdiff(ls(), c("start_time", save_these)))
+```
+
 
 Standardizing columns
 183 column names from 32 states pared down to 45 columns
@@ -3596,13 +4203,46 @@ all_data2 %>%
 
 Calculate averages for 32 states that provided usable data
 ```{r}
-#1,565,686 records (without CA renewals)
-valid_data <- all_data2 %>% 
+#1,549,715 records (without CA renewals) 
+#1,945,411 for Jan. 1 - Sept. 23
+filtered_data <- all_data2 %>%
+  filter (application_date <= as.Date("2021-09-23")) %>%
+  filter (issue_date <= as.Date("2021-09-23")) %>% 
+  #Standardize 29 app types to simplest version
+  mutate (standard_app_type = case_when(
+    str_detect(app_type, "Reinstatement") ~ "Reinstatement",
+    str_detect(app_type, "Renewal") ~ "Renewal",
+    str_detect(lic_type, "Provisional") ~ "All",
+    str_detect(lic_type, "Temp") ~ "All",
+    str_detect(app_type, "Endorsement") ~ "Endorsement",
+    str_detect(app_type, "Exam-retest") ~ "Exam-retest",
+    str_detect(app_type, "Exam") ~ "Exam",
+    app_type %in% c("Foreign Applicant", "Inactive", "SSL to MSL", "International") ~ "Other",
+    TRUE ~ app_type))
+
+#How many processing times are negative and will be removed?
+#553220 
+filtered_data %>% filter (process_time2 < 0) %>% nrow()
+#Where are these from and what types of applications?
+#Majority are renewals (525793); 3125 = Endorsement and 2793 = Exam = 5918 removed
+filtered_data %>% filter (process_time2 < 0) %>% count(standard_app_type) %>% View
+
+#Four application types NPR is analyzing = 226,304 new licenses issued in 2021
+filtered_data %>% filter (year=="2021" & standard_app_type %in% c("Exam", "Endorsement", "Other", "Unknown")) %>% count(standard_app_type) %>% View
+
+#How many of these had negative process times that were removed? Just 77 licenses from six states
+filtered_data %>% filter (year=="2021" & standard_app_type %in% c("Exam", "Endorsement", "Other", "Unknown") & process_time2 < 0) %>% count(standard_app_type, data_state) %>% View
+
+#How many processing times are NA and will be removed? >> NONE
+filtered_data %>% filter (is.na(process_time2)) %>% nrow()
+
+#Original method to filter down dataset, keeps pending applications
+valid_data <- all_data2 %>%
   filter (process_time2 > -1) %>% #Keep only valid processing times
   filter (!is.na(process_time2)) %>%
   filter (year != "2022") %>% #remove 266 errors and those issued in NC/TN
   #remove pending apps older than July 2020 (11789 RNs & 1994 LPNs)
-  filter (!(str_detect(year, "^Pending") & (application_date < as.Date("2020-07-01")))) 
+  filter (!(str_detect(year, "^Pending") & (application_date < as.Date("2020-12-31")))) #"2020-07-01"
 
 #637,877 records removed (NA + negative)
 nrow(all_data2)-nrow(valid_data) 
@@ -3716,7 +4356,7 @@ state_avg_lic_type_only <- valid_data2 %>%
 #Keeps all new licenses, grouping RNs and LPNs and all application types together
 #Removes exam-retest, reinstatements, renewals
 #keeps only 2021
-state_avg_lic_type_only_lumped <- valid_data2 %>%
+state_averages_lumped <- valid_data2 %>%
   filter (lic_type %in% c("LPN", "RN")) %>%
   filter (standard_app_type %in% c("Endorsement", "Exam", "Other", "Unknown")) %>%
   filter (year == "2021") %>%
@@ -3736,6 +4376,8 @@ state_avg_lic_type_only_lumped <- valid_data2 %>%
              pct_over180days = count_over180days/count,
              count_over1year = sum(process_time2 > 365),
              pct_over1year = count_over1year/count)
+
+#write_csv (state_averages_lumped, "PRINT_THIS.csv")
 
 natl_averages <- valid_data2 %>%
   mutate (year = if_else (str_detect(year, "^Pending"), "Pending", year)) %>%
@@ -3880,9 +4522,32 @@ compare_count <- natl_averages %>%
 rbind (compare_count, compare_pct)
 ```
 
+```{r}
+#How many took over six months? 19,924 nurses
+valid_data2 %>% 
+  filter (process_time2 > 180) %>%
+  filter (year=="2021") %>%
+  filter (standard_app_type %in% c("Endorsement", "Exam", "Other", "Unknown")) %>%
+  count (data_state) %>%
+  arrange (desc(n))
+#  count (lic_type, standard_app_type)
+
+#Which license types have the highest proportion of nurses taking over six months?
+state_averages %>%
+  filter (year=="2021") %>%
+  filter (standard_app_type %in% c("Endorsement", "Exam", "Other", "Unknown")) %>%
+  arrange (desc(pct_over180days)) %>%
+  select (1:7, count_over180days, pct_over180days) %>%
+  view
+
+#How many erroneous licenses removed?
+valid
+```
+
+
 *** BIG FINDINGS ***
 #Same percentages when filtering out those issued in Oct/Nov/Dec 2021
-In these 32 states, over half (57%) the 227,000 RNs and LPNs issued new licenses Jan. 1-Sept. 23, 2021, waited more than two months (129,616 nurses). Over one-third  (35%) of nurses (80,143) waited more than 3 months to get a new license issued in 2021.
+In these 32 states, over half (57%) the 226,000 RNs and LPNs issued new licenses Jan. 1-Sept. 23, 2021, waited more than two months (129,452 nurses). Over one-third  (35%) of nurses (80,056) waited more than 3 months to get a new license issued in 2021.
 
 Count up totals by RN/LPN (new licenses only) - LPN numbers are slightly slower
 ```{r}
@@ -3899,7 +4564,7 @@ natl_averages %>%
 ```{r}
 compare_count2 <- natl_averages %>%
   filter (lic_type %in% c("LPN", "RN")) %>%
-  filter (year %in% c("2020", "2021")) %>%
+  filter (year %in% c("2020", "2021", "Pending")) %>%
   #filter (!(standard_app_type %in% c("Reinstatement", "Renewal", "Exam-retest"))) %>%
   group_by (lic_type, standard_app_type, year) %>%
   summarize (count = sum(count),
@@ -3907,15 +4572,56 @@ compare_count2 <- natl_averages %>%
 
 compare_pct2 <- natl_averages %>%
   filter (lic_type %in% c("LPN", "RN")) %>%
-  filter (year %in% c("2020", "2021")) %>%
+  filter (year %in% c("2020", "2021", "Pending")) %>%
   #filter (!(standard_app_type %in% c("Reinstatement", "Renewal", "Exam-retest"))) %>%
   group_by (lic_type, standard_app_type, year) %>%
   summarize (count = sum(count),
              across(c(count_over30days, count_over60days, count_over90days, count_over120days, count_over180days, count_over1year), ~(sum(.x))/sum(count)))
 
 rbind (compare_count2, compare_pct2) %>%
-  filter (year=="2021" & standard_app_type %in% c("Exam", "Endorsement"))
+  filter (year %in% c("2021", "Pending") & standard_app_type %in% c("Exam", "Endorsement"))
+
+#30 states that can provide endorsement counts (CT + VA cannot because lumped together)
+state_averages %>%
+  filter (lic_type %in% c("LPN", "RN")) %>%
+  filter (year == "2021") %>%
+  filter (standard_app_type %in% c("Exam", "Endorsement")) %>%
+  ungroup() %>%
+  distinct (data_state)
+#How many states provided usable pending data?
+#20 exam/endorse states plus CT
+valid_data %>%
+  mutate (year = if_else (str_detect(year, "^Pending"), "Pending", year)) %>%
+  filter (year=="Pending") %>%
+  ungroup() %>%
+  distinct (data_state)
 ```
+
+#How many endorsement nurses licensed by these 30 states in 2021? (RE-RUN WITHOUT REMOVING AFTER 9-23-21)
+105543 licensed by endorsement in 2021; 41343 pending (Jan 2021-Dec 2021) = 146886
+Serious undercount since only includes 30 states, through September for most
+```{r}
+#rerun standardization code to include ALL licensed and pending if state included others after Sept. 23
+endorsement21 <- valid_data %>% 
+  mutate (standard_app_type = case_when(
+    str_detect(app_type, "Reinstatement") ~ "Reinstatement",
+    str_detect(app_type, "Renewal") ~ "Renewal",
+    str_detect(lic_type, "Provisional") ~ "All",
+    str_detect(lic_type, "Temp") ~ "All",
+    str_detect(app_type, "Endorsement") ~ "Endorsement",
+    str_detect(app_type, "Exam-retest") ~ "Exam-retest",
+    str_detect(app_type, "Exam") ~ "Exam",
+    app_type %in% c("Foreign Applicant", "Inactive", "SSL to MSL", "International") ~ "Other",
+    TRUE ~ app_type)) %>%
+  mutate (year = if_else (str_detect(year, "^Pending"), "Pending", year)) %>%
+  filter (year %in% c("2021", "Pending") & standard_app_type %in% c("Exam", "Endorsement")) %>%
+  count (standard_app_type, year)
+
+#How many total endorsement licenses were issued and applied for in 2021 from these records?
+sum(endorsement21[endorsement21$standard_app_type=="Endorsement", "n"])
+#146,886 nurses -- 
+```
+
 *** BIG FINDINGS *** 
 #RNs slightly faster when filtering out those issued in Oct/Nov/Dec 2021
 Longer than 60 days: 
@@ -3929,16 +4635,26 @@ Longer than 90 days:
 #Oklahoma, Texas and Maine - didn't provide any applications from 2019
 #Most states didn't provide applications before 2019, meaning 2019 is incomplete
 ```{r}
-ca_averages <- state_averages %>%
-  filter (data_state=="PA") %>%
-  filter (year != "2019")
+pa_averages <- state_averages %>%
+  filter (data_state=="PA" & lic_type %in% c("RN", "LPN")) %>%
+  filter (year == "2021") %>%
+  select (1:7)
 
-#write_csv (ca_averages, "ca_averages.csv")
+#write_csv (pa_averages, "pa_averages_220301.csv")
 
 tx_averages <- state_averages %>%
   filter (data_state=="TX") %>%
   filter (year == "2021") #%>%
   #select (1:3, 5, 6, over60days, pct_over60days, over90days, pct_over90days)
+
+tx_data <- valid_data2 %>%
+  filter (data_state=="TX") %>%
+  filter (year == "2021")
+  
+#what were the slowest processing times in Texas in 2021?
+tx_data %>% 
+  group_by (standard_app_type) %>%
+  summarize (max (process_time2))
 ```
 
 *** BIG FINDINGS ***
@@ -3967,14 +4683,14 @@ state_averages %>%
 ```
 
 What percent of American nurses are represented by these 30 states' data?
-Approx 63% of nurse licenses nationally, using counts of active licenses as a proxy for new nurse applications
-* Getting Florida would add 6%, and getting TN would add 2%
+Approx 65% of nurse licenses nationally, using counts of active licenses as a proxy for new nurse applications
+* Getting Florida would add 6%
 
 Downloaded list of active RN/LPN licenses by state from the National Council of State Boards of Nursing, as of Nov. 23, 2021
 https://www.ncsbn.org/14283.htm
 https://www.ncsbn.org/Aggregate-AllActiveLicensesExcel.xls
 ```{r}
-nnd <- read_excel ("Aggregate-AllActiveLicensesExcel-112321.xls", skip=3) %>%
+nnd <- read_excel ("/Users/austinfast/Documents/NPR/210908-nursing licenses/Aggregate-AllActiveLicensesExcel-112321.xls", skip=3) %>%
   select(1,4,7) %>%
   magrittr::set_colnames(c("state_name", "licenses", "pct")) %>%
   filter (!(state_name=="TOTALS"|is.na(state_name)))
@@ -3997,7 +4713,7 @@ nnd2 <- nnd %>%
   add_row (state_name="MICHIGAN", licenses=177633, state="mi") #Michigan not included in NCSBN dataset, so adding figure from 2020 report: https://www.michigan.gov/documents/mdhhs/MI_Nurse_Survey_Report_2020_final_705633_7.pdf
 
 nnd3 <- nnd2 %>%
-  mutate (data = if_else (state %in% c("ar", "co", "ct", "hi", "ia", "il", "in", "ky", "la-pn", "ma", "me", "mi", "mn", "ms", "mt", "ne", "nc", "nh", "nj", "nm", "oh", "ok", "or", "pa", "sc", "tx", "vt", "va", "wv-rn", "wy", "ca-rn", "ca-pn"), "received", "missing"), #, "fl", "tn"
+  mutate (data = if_else (state %in% c("ar", "co", "ct", "hi", "ia", "il", "in", "ky", "la-pn", "ma", "me", "mi", "mn", "ms", "mt", "ne", "nc", "nh", "nj", "nm", "oh", "ok", "or", "pa", "sc", "tx", "tn", "vt", "va", "wv-rn", "wy", "ca-rn", "ca-pn"), "received", "missing"), #, "fl", 
           pct = licenses / sum(licenses) * 100)
 
 nnd3 %>%
@@ -4005,7 +4721,6 @@ nnd3 %>%
   summarize (count = sum(licenses),
              pct = sum (pct))
 ```
-
 
 Virginia claims to process 99% of applications within 30 days, but that's 30 days from getting marked complete.
 docs_time records days from being marked complete. This confirms their claim, but also shows only
@@ -4148,7 +4863,7 @@ exam_end %>%
   theme(axis.text.x = element_text(angle=60, hjust=1))
 ```
 
-Export graphs of means/medians -- uses exam_end at line 4036 (before Connie Jin version)
+Export graphs of means/medians -- uses exam_end at line 4754 (before Connie Jin version)
 ```{r}
 lic_types <- c("RN", "LPN")
 app_types <- c("Exam", "Endorsement")
@@ -4269,10 +4984,12 @@ exam_end <- state_averages %>%
 exam_end2 <- exam_end %>%
   mutate (mean = as.integer(mean),
           median= as.integer(median)) %>%
-  pivot_longer (cols = c("mean", "median", "count", "count_over30days", "pct_over30days", 
-                         "count_over60days", "pct_over60days", "count_over90days", "pct_over90days", 
-                         "count_over120days", "pct_over120days", "count_over180days", "pct_over180days", 
-                         "count_over1year", "pct_over1year"),  #, "count_2020", "count_2021", "change_med"
+  pivot_longer (cols = c("mean", "median", "count", 
+                         #"count_over30days", "pct_over30days", 
+                         #"count_over60days", "pct_over60days", "count_over90days", "pct_over90days", 
+                         #"count_over120days", "pct_over120days", "count_over180days", "pct_over180days", 
+                         #"count_over1year", "pct_over1year"
+                         ),  #, "count_2020", "count_2021", "change_med"
                names_to = "type", 
                values_to = "value")
 
@@ -4288,10 +5005,12 @@ exam_end_lic_only <- state_avg_lic_type_only %>%
   select (-year) %>%
   mutate (mean = as.integer(mean),
           median= as.integer(median)) %>%
-  pivot_longer (cols = c("mean", "median", "count", "count_over30days", "pct_over30days", 
-                         "count_over60days", "pct_over60days", "count_over90days", "pct_over90days", 
-                         "count_over120days", "pct_over120days", "count_over180days", "pct_over180days", 
-                         "count_over1year", "pct_over1year"),  #, "count_2020", "count_2021", "change_med"
+  pivot_longer (cols = c("mean", "median", "count", 
+                         #"count_over30days", "pct_over30days", 
+                         #"count_over60days", "pct_over60days", "count_over90days", "pct_over90days", 
+                         #"count_over120days", "pct_over120days", "count_over180days", "pct_over180days", 
+                         #"count_over1year", "pct_over1year"
+                         ),  #, "count_2020", "count_2021", "change_med"
                names_to = "type", 
                values_to = "value") %>%
   pivot_wider (id_cols = c("type", "lic_type"),
@@ -4304,10 +5023,12 @@ natl_averages3 <- natl_averages %>%
   filter (year=="2021" & standard_app_type %in% c("Exam", "Endorsement")) %>%
   mutate (mean = as.integer(mean),
           median= as.integer(median)) %>%
-  pivot_longer (cols = c("mean", "median", "count", "count_over30days", "pct_over30days", 
-                         "count_over60days", "pct_over60days", "count_over90days", "pct_over90days", 
-                         "count_over120days", "pct_over120days", "count_over180days", "pct_over180days", 
-                         "count_over1year", "pct_over1year"),  #, "count_2020", "count_2021", "change_med"
+  pivot_longer (cols = c("mean", "median", "count", 
+                         #"count_over30days", "pct_over30days", 
+                         #"count_over60days", "pct_over60days", "count_over90days", "pct_over90days", 
+                         #"count_over120days", "pct_over120days", "count_over180days", "pct_over180days", 
+                         #"count_over1year", "pct_over1year"
+                         ),  #, "count_2020", "count_2021", "change_med"
                names_to = "type", 
                values_to = "natl_look") %>%
   select (-year)
@@ -4319,10 +5040,12 @@ min <- state_averages %>%
   group_by (lic_type, standard_app_type) %>%
   arrange (lic_type, standard_app_type) %>%
   summarize (across(3:17, ~min(.x))) %>%
-  pivot_longer (cols = c("mean", "median", "count", "count_over30days", "pct_over30days", 
-                         "count_over60days", "pct_over60days", "count_over90days", "pct_over90days", 
-                         "count_over120days", "pct_over120days", "count_over180days", "pct_over180days", 
-                         "count_over1year", "pct_over1year"),  #, "count_2020", "count_2021", "change_med"
+  pivot_longer (cols = c("mean", "median", "count", 
+                         #"count_over30days", "pct_over30days", 
+                         #"count_over60days", "pct_over60days", "count_over90days", "pct_over90days", 
+                         #"count_over120days", "pct_over120days", "count_over180days", "pct_over180days", 
+                         #"count_over1year", "pct_over1year"
+                         ),  #, "count_2020", "count_2021", "change_med"
                names_to = "type", 
                values_to = "state_min")
 
@@ -4333,10 +5056,12 @@ max <- state_averages %>%
   group_by (lic_type, standard_app_type) %>%
   arrange (lic_type, standard_app_type) %>%
   summarize (across(3:17, ~max(.x))) %>%
-  pivot_longer (cols = c("mean", "median", "count", "count_over30days", "pct_over30days", 
-                         "count_over60days", "pct_over60days", "count_over90days", "pct_over90days", 
-                         "count_over120days", "pct_over120days", "count_over180days", "pct_over180days", 
-                         "count_over1year", "pct_over1year"),  #, "count_2020", "count_2021", "change_med"
+  pivot_longer (cols = c("mean", "median", "count", 
+                         #"count_over30days", "pct_over30days", 
+                         #"count_over60days", "pct_over60days", "count_over90days", "pct_over90days", 
+                         #"count_over120days", "pct_over120days", "count_over180days", "pct_over180days", 
+                         #"count_over1year", "pct_over1year"
+                         ),  #, "count_2020", "count_2021", "change_med"
                names_to = "type", 
                values_to = "state_max")
 
@@ -4344,7 +5069,7 @@ exam_end4 <- exam_end3 %>%
   full_join (natl_averages3, by = c("lic_type", "standard_app_type", "type")) %>%
   full_join (min, by = c("lic_type", "standard_app_type", "type")) %>%
   full_join (max, by = c("lic_type", "standard_app_type", "type")) %>%
-  select (1:3, natl_look, state_min, state_max, 4:32)
+  select (1:3, natl_look, state_min, state_max, 4:33)
 
 ##Calculate by license type only, combining exam, endorsement, other, unknown app types
 ##THIS ALLOWS FOR CT & VA TO BE ADDED IN SINCE THEY DIDN'T SEPARATE BY APPLICATION TYPE
@@ -4354,10 +5079,12 @@ min_lic_type <- state_avg_lic_type_only %>%
           median= as.integer(median)) %>%
   group_by (lic_type) %>%
   summarize (across(3:17, ~min(.x))) %>%
-  pivot_longer (cols = c("mean", "median", "count", "count_over30days", "pct_over30days", 
-                         "count_over60days", "pct_over60days", "count_over90days", "pct_over90days", 
-                         "count_over120days", "pct_over120days", "count_over180days", "pct_over180days", 
-                         "count_over1year", "pct_over1year"),  #, "count_2020", "count_2021", "change_med"
+  pivot_longer (cols = c("mean", "median", "count", 
+                         #"count_over30days", "pct_over30days", 
+                         #"count_over60days", "pct_over60days", "count_over90days", "pct_over90days", 
+                         #"count_over120days", "pct_over120days", "count_over180days", "pct_over180days", 
+                         #"count_over1year", "pct_over1year"
+                         ),  #, "count_2020", "count_2021", "change_med"
                names_to = "type", 
                values_to = "state_min")
 
@@ -4367,10 +5094,12 @@ max_lic_type <- state_avg_lic_type_only %>%
           median= as.integer(median)) %>%
   group_by (lic_type) %>%
   summarize (across(3:17, ~max(.x))) %>%
-  pivot_longer (cols = c("mean", "median", "count", "count_over30days", "pct_over30days", 
-                         "count_over60days", "pct_over60days", "count_over90days", "pct_over90days", 
-                         "count_over120days", "pct_over120days", "count_over180days", "pct_over180days", 
-                         "count_over1year", "pct_over1year"),  #, "count_2020", "count_2021", "change_med"
+  pivot_longer (cols = c("mean", "median", "count", 
+                         #"count_over30days", "pct_over30days", 
+                         #"count_over60days", "pct_over60days", "count_over90days", "pct_over90days", 
+                         #"count_over120days", "pct_over120days", "count_over180days", "pct_over180days", 
+                         #"count_over1year", "pct_over1year"
+                         ),  #, "count_2020", "count_2021", "change_med"
                names_to = "type", 
                values_to = "state_max")
 
@@ -4378,10 +5107,12 @@ natl_averages4 <- natl_averages2 %>%
   filter (year=="2021" & lic_type %in% c("LPN", "RN")) %>%
   mutate (mean = as.integer(mean),
           median= as.integer(median)) %>%
-  pivot_longer (cols = c("mean", "median", "count", "count_over30days", "pct_over30days", 
-                         "count_over60days", "pct_over60days", "count_over90days", "pct_over90days", 
-                         "count_over120days", "pct_over120days", "count_over180days", "pct_over180days", 
-                         "count_over1year", "pct_over1year"),  #, "count_2020", "count_2021", "change_med"
+  pivot_longer (cols = c("mean", "median", "count", 
+                         #"count_over30days", "pct_over30days", 
+                         #"count_over60days", "pct_over60days", "count_over90days", "pct_over90days", 
+                         #"count_over120days", "pct_over120days", "count_over180days", "pct_over180days", 
+                         #"count_over1year", "pct_over1year"
+                         ),  #, "count_2020", "count_2021", "change_med"
                names_to = "type", 
                values_to = "natl_look") #%>%
   #select (-year)
@@ -4391,14 +5122,21 @@ exam_end_lic_only2 <- exam_end_lic_only %>%
   full_join (min_lic_type, by = c("lic_type", "type")) %>%
   full_join (max_lic_type, by = c("lic_type", "type")) %>%
   mutate (standard_app_type = "All new licenses") %>%
-  select (1:2, standard_app_type, natl_look, state_min, state_max, 3:32)
+  select (1:2, standard_app_type, natl_look, state_min, state_max, 3:33)
 
 final2 <- rbind (exam_end_lic_only2, exam_end4) %>%
   rename (measure = type, 
           `category (license type)`=lic_type,
           `label (application type)`=standard_app_type)
 
-write_csv (final2, "FOR CONNIE-State-summary-lic-type-app-type3+NC+TN.csv")
+write_csv (final2, "FOR CONNIE-State-summary-lic-type-app-type3+NC+TN-reduced2.csv")
+
+#Which states have other/unknown, meaning "All new licenses" will be more than sum of Exam+Endorsement?
+state_averages %>%
+  filter (year=="2021") %>%
+  filter (standard_app_type %in% c("Other", "Unknown")) %>%
+  ungroup() %>%
+  distinct (data_state)
 ```
 
 #Double check counts match for exam/endorsement split
@@ -4418,7 +5156,7 @@ valid_data2 %>%
   mutate (diff = count - raw_count)
 ```
 
-How many new licenses in 2021? ##227357 (excluding re-tests [which skew medians longer], reinstatements, reactivations, etc.)
+How many new licenses in 2021? ##226575 (excluding re-tests [which skew medians longer], reinstatements, reactivations, etc.)
 ```{r}
 avg_counts %>%
   ungroup() %>%
@@ -4454,7 +5192,7 @@ ca_weeks_to_license2 <- ca_weeks_to_license %>%
 ca_weeks_to_license2 %>% 
   ungroup() %>%
   count (year)
-#39121 pending apps filed in 2021
+#38288 pending apps filed in 2021
 ca_weeks_to_license2 %>% 
   ungroup() %>%
   filter (year=="Pending") %>%
@@ -4490,7 +5228,7 @@ ca_weeks_to_license3 <- ca_weeks_to_license2 %>%
   filter (application_date <= as.Date("2021-09-23"))  %>%
   filter (issue_date <= as.Date("2021-09-23"))  
   
-ca_weeks_to_license4 <- ca_weeks_to_license2 %>% #change to 3 if want to take only Jan-Sept 2021
+ca_weeks_to_license4 <- ca_weeks_to_license3 %>% #change to 3 if want to take only Jan-Sept 2021
   ungroup() %>%
   mutate (week_count = ceiling(as.numeric(process_time2/7))) %>% #always round up
   filter (year=="2021") %>%
@@ -4544,7 +5282,8 @@ ggsave(plot = rn_graph,
 #35% RN exams were deficient
 #35% VN exams were deficient
 
-ca_weeks_to_license5 <- ca_weeks_to_license2 %>%
+#ca_weeks_to_license5 <- ca_weeks_to_license2 %>% #FULL YEAR
+ca_weeks_to_license5 <- ca_weeks_to_license3 %>% #FOR JAN-SEPT
   ungroup() %>%
   filter (year == "2021") %>%
   mutate (deficient = if_else (is.na(deficient), "complete", deficient)) %>%
@@ -4554,8 +5293,8 @@ ca_weeks_to_license5 <- ca_weeks_to_license2 %>%
              count = n()) %>%
   group_by (year, data_state, lic_type, standard_app_type) %>%
   mutate (pct = count / sum(count) * 100,
-          med_weeks =  (as.numeric(median21/7)),#ceiling
-          mean_weeks =  (as.numeric(mean21/7)))#ceiling
+          med_weeks =  ceiling(as.numeric(median21/7)),#ceiling
+          mean_weeks =  ceiling(as.numeric(mean21/7)))#ceiling
 
 #What percent of all licenses are deficient? 55% for whole year; 56% for Jan-Sept
 ca_weeks_to_license5 %>%
@@ -4575,11 +5314,18 @@ ca_deficient <- ca_weeks_to_license4 %>%
   mutate (across(2:5, ~replace_na(.x, 0)))
 
 #FOR CONNIE JIN's graphics
-write_csv (ca_deficient, "Nurse licenses-weeks to licensure-CA-deficient-FULLYEAR.csv")
-write_csv (ca_weeks_to_license5, "Nurse licenses-weeks to licensure-CA-medians.csv")
+#write_csv (ca_deficient, "Nurse licenses-weeks to licensure-CA-deficient-FULLYEAR.csv")
+ca_weeks_to_license5 <- ca_weeks_to_license5 %>%
+  filter (lic_type=="RN")
+#write_csv (ca_weeks_to_license5, "Nurse licenses-weeks to licensure-CA-medians.csv")
+
+#FULL YEAR DATA: 12328 deficient endorsement licenses & 3853 complete endorsement
+ca_weeks_to_license4 %>%
+  group_by (lic_type, standard_app_type, deficient) %>%
+  summarize (total = sum(n))
 
 #Create stacked chart like Connie's
-rn_graph <- ca_weeks_to_license4 %>%  
+rn_graph <- ca_weeks_to_license4 %>% 
   #filter (data_state==state) %>%
   filter (lic_type %in% c("RN")) %>% #"LPN", 
   filter (standard_app_type %in% c("Exam", "Endorsement")) %>%
@@ -4591,12 +5337,13 @@ rn_graph <- ca_weeks_to_license4 %>%
   facet_wrap (~ deficient, ncol=1, scales='free', 
               labeller = label_wrap_gen(multi_line=FALSE)) + 
  # scale_x_continuous(breaks=c(0,30, 60, 90, 120)) +
-  scale_x_continuous(breaks=seq(0, 53, by = (365 / 7 / 12)),
-                     labels=as.character(seq(0, 12, by = 1)),
-                     limits=c(-0.5, 53)) +
+  scale_x_continuous(
+                     breaks=seq(0, 52, by = 4), #(365 / 7 / 12))
+  #                   labels=as.character(seq(0, 12, by = 1)),
+                     limits=c(-0.5, 52)) +
   #Add padding so they appear equal width
-  scale_y_continuous(breaks=seq(0,1500, by = 200),#900 Jan-sept #1500 fullyear
-                     limits=c(0,1500)
+  scale_y_continuous(breaks=seq(0,850, by = 200),#900 Jan-sept #1500 fullyear
+                     limits=c(0,850)
                      #labels = function(x) stringr::str_pad(x, width = 4, pad = "0")
                      ) +
   #Add median lines
@@ -4612,8 +5359,16 @@ rn_graph <- ca_weeks_to_license4 %>%
   theme(axis.text.x = element_text(angle=60, hjust=1)) + 
   theme(legend.position = "right")
 
+print(rn_graph) 
+
 ca_weeks_to_license4 %>%
   filter (lic_type=="RN" & standard_app_type=="Exam")
+
+#How many licenses are cut off of chart
+ca_weeks_to_license4 %>%
+  filter (week_count > 48 & lic_type == "RN") %>%
+  group_by (lic_type, standard_app_type) %>%
+  summarize (total = sum(n))
 ```
 
 Create histograms of each state's number of weeks to license by license type and application type.
@@ -4659,17 +5414,76 @@ connie_histographs <- weeks_to_license %>%
 #write_csv (valid_data3, "Nurse licenses-weeks to licensure-state medians.csv")
   
 #Separating for Connie into CA, PA, TX
-pa <- weeks_to_license %>%
+pa_weeks_to_license <- weeks_to_license %>%
   rename (licensee_count = n) %>%
-  filter (data_state == "PA" & standard_app_type %in% c("Exam", "Endorsement")) %>%
-  pivot_wider (id_cols = week_count,
-               names_from = c(lic_type, standard_app_type),
-               values_from = licensee_count) %>%
-  arrange (week_count) %>%
-  mutate (across(2:5, ~replace_na(.x, 0)))
+  filter (data_state == "PA" & standard_app_type %in% c("Exam", "Endorsement")) #%>%
+#  pivot_wider (id_cols = week_count,
+#               names_from = c(lic_type, standard_app_type),
+#               values_from = licensee_count) %>%
+#  arrange (week_count) %>%
+#  mutate (across(2:5, ~replace_na(.x, 0)))
 #write_csv (tx, "Nurse licenses-weeks to licensure-TX.csv")
-#================================================= |
+  
+pa_weeks_to_license2 <- valid_data2 %>% #FOR JAN-SEPT
+  ungroup() %>%
+  filter (data_state=="PA" & year == "2021") %>%
+  group_by (year, data_state, lic_type, standard_app_type) %>%
+  summarize (mean21 = mean (process_time2),
+             median21 = median (process_time2),
+             count = n()) %>%
+  group_by (year, data_state, lic_type, standard_app_type) %>%
+  mutate (med_weeks =  ceiling(as.numeric(median21/7)),#ceiling
+          mean_weeks =  ceiling(as.numeric(mean21/7))) %>% #ceiling 
+  filter (lic_type %in% c("RN", "LPN"))
 
+#write_csv (pa_weeks_to_license2, "pa_averages_220307.csv")
+
+#Create stacked chart like Connie's
+pa_graph <- pa_weeks_to_license %>% 
+  #filter (data_state==state) %>%
+  #filter (lic_type %in% c("RN")) %>% #"LPN", 
+  filter (standard_app_type %in% c("Exam", "Endorsement")) %>%
+  arrange (standard_app_type, week_count) %>%
+#  filter (standard_app_type == "Exam") %>%
+ # filter (!(standard_app_type %in% c("Reinstatement", "Renewal", "Exam-retest"))) %>%
+  ggplot(aes(x = week_count, y = licensee_count, group=lic_type, fill=standard_app_type)) +
+  geom_bar(stat='identity', position='stack') +
+  facet_wrap (~ lic_type, ncol=1, scales='free', 
+              labeller = label_wrap_gen(multi_line=FALSE)) + 
+ # scale_x_continuous(breaks=c(0,30, 60, 90, 120)) +
+  scale_x_continuous(
+                     breaks=seq(0, 52, by = 4), #(365 / 7 / 12))
+  #                   labels=as.character(seq(0, 12, by = 1)),
+                     limits=c(-0.5, 52)) +
+  #Add padding so they appear equal width
+  scale_y_continuous(breaks=seq(0,850, by = 200),#900 Jan-sept #1500 fullyear
+                     limits=c(0,850)
+                     #labels = function(x) stringr::str_pad(x, width = 4, pad = "0")
+                     ) +
+  #Add median lines
+  geom_vline(data = (pa_weeks_to_license2 %>% filter (lic_type=="RN" & standard_app_type %in% c("Exam", "Endorsement"))), mapping = aes(xintercept = med_weeks)) +
+ # geom_vline(data = (ca_weeks_to_license5 %>% filter (lic_type=="RN" & standard_app_type %in% c("Exam", "Endorsement"))), mapping = aes(xintercept = mean_weeks), color="steelblue", linetype="twodash") +
+ # geom_vline (xintercept = 90, linetype = "dashed", colour = "black") + 
+  labs(x="Weeks from application to licensure", 
+       y="Count of licensees", 
+       title=paste("New registered nurse licenses issued in PA in 2021"), 
+       fill = "Application Type",
+       #subtitle="Weeks from application submission to license issuance", 
+       caption="Source: California Board of Registered Nursing\nVertical lines represent that group's median processing time.") +#\nIncludes licenses issued Jan. 1 to Sept. 23, 2021.") +
+  theme(axis.text.x = element_text(angle=60, hjust=1)) + 
+  theme(legend.position = "right")
+
+print(pa_graph) 
+
+#How many licenses are cut off of chart
+pa_weeks_to_license %>%
+  filter (week_count > 48) %>%
+#  group_by (lic_type, standard_app_type) %>%
+  group_by (lic_type) %>%
+  summarize (total = sum(licensee_count))
+```
+
+```{r}
 states <- str_to_upper(c("ar", "co", "hi", "ia", "il", "in", "ky", "ma", "me", "mi", "mn", "ms", "mt", "ne", "nh", "nj", "nm", "oh", "ok", "or", "pa", "sc", "tx", "vt", "LA", "WY", "WV", "CT", "VA", "NC", "CA", "TN"))
 
 #states <- "CT"

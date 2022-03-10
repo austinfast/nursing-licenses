@@ -15,6 +15,10 @@ library(lubridate)
 COVID-19 Reported Patient Impact and Hospital Capacity by State Timeseries
 https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Capa/g62h-syeh
 
+Description of fields is at https://www.hhs.gov/sites/default/files/covid-19-faqs-hospitals-hospital-laboratory-acute-care-facility-data-reporting.pdf
+
+Line 24 defines critical staffing shortages: Each facility should identify staffing shortages based on their facility needs and internal policies for staffing ratios. The use of temporary staff does not count as a staffing shortage if staffing ratios are met according to the facility’s needs and internal policies for staffing ratios.
+
 Pull historical data into R
 ```{r}
 hospital <- read_csv("https://healthdata.gov/api/views/g62h-syeh/rows.csv?accessType=DOWNLOAD")
@@ -42,6 +46,12 @@ hospital2 %>%
               #fill = state
               )) +
     geom_line() 
+
+#Check how states are doing
+hospital2 %>%
+  filter (date == (Sys.Date()-5)) %>%
+  arrange (desc(pct_yes)) %>%
+  View
 ```
 
 This calculates a national rate by date of how many of the hospitals report a critical staffing shortage and how many of them responded.
@@ -79,7 +89,8 @@ hospital4 <- hospital %>%
   group_by (date) %>%
   select (date, state, critical_staffing_shortage_anticipated_within_week_yes, critical_staffing_shortage_anticipated_within_week_no, critical_staffing_shortage_anticipated_within_week_not_reported) %>%
   #sum up three possible responses 
-  summarize (total = sum(critical_staffing_shortage_anticipated_within_week_yes) + sum(critical_staffing_shortage_anticipated_within_week_no) + sum(critical_staffing_shortage_anticipated_within_week_not_reported),
+  summarize (tot_report =  sum(critical_staffing_shortage_anticipated_within_week_yes) +  sum(critical_staffing_shortage_anticipated_within_week_no),
+             total = sum(critical_staffing_shortage_anticipated_within_week_yes) + sum(critical_staffing_shortage_anticipated_within_week_no) + sum(critical_staffing_shortage_anticipated_within_week_not_reported),
              #Of those that responded, calculate percent responding yes
           pct_yes = sum(critical_staffing_shortage_anticipated_within_week_yes) / (sum(critical_staffing_shortage_anticipated_within_week_yes) + sum(critical_staffing_shortage_anticipated_within_week_no)), 
              #Calculate percent that responded
@@ -94,10 +105,12 @@ hospital4a <- hospital4 %>%
   arrange (date) %>% 
   mutate (#days_low_vax = RcppRoll::roll_sum(dplyr::lag(low_vax),14, fill=NA, align="right"),
           #days_low_st_vax = RcppRoll::roll_sum(dplyr::lag(low_st_vax),14, fill=NA, align="right"),
+    x7_day_rolling_reporting = zoo::rollmean(tot_report, k = 7, fill = NA, align = "right"),
           x7_day_rolling_avg_pct_hospitals_anticipating_shortage = zoo::rollmean(pct_yes, k = 7, fill = NA, align = "right")* 100,
           x7_day_rolling_avg_pct_hospitals_reporting = zoo::rollmean(pct_reporting, k = 7, fill = NA, align = "right")* 100) %>%
   rename (pct_hospitals_anticipating_shortage = pct_yes,
-          pct_hospitals_reporting = pct_reporting)
+          pct_hospitals_reporting = pct_reporting) %>%
+  arrange (desc(date)) #rearrange, most recent first
 ```
 
 Graph national rate of hospitals anticipating a critical staffing shortage.
@@ -120,7 +133,7 @@ hospital4a %>%
          #fill="95% CI for trendline",
          caption="Source: U.S. Department of Health & Human Services") + 
   scale_x_date(#limits = c(as.Date("2006-12-31"), as.Date("2014-09-30")), 
-               breaks = seq(as.Date("2020-08-01"), as.Date("2022-02-28"), "month"),
+               breaks = seq(as.Date("2020-08-01"), as.Date("2022-03-31"), "month"),
                date_labels = "%b %Y") +
   theme(axis.text.x=element_text(angle=45, hjust=1)) +
   scale_y_continuous(limits = c(0, 30),

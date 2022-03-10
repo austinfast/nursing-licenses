@@ -1,0 +1,3627 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD><META content="IE=5.0000" http-equiv="X-UA-Compatible">
+
+<SCRIPT language="JavaScript">
+<!--
+var downStrokeField = null;
+
+document.onkeydown = onEnterKey; 
+function onEnterKey(event) { 
+	var ev = event || window.event;
+	if (ev && ev.keyCode == 13 ) {
+		var eSrc = ev.srcElement || ev.target;
+		var strTextName = eSrc.name ; 
+		if (document.all(strTextName).onblur) 
+			document.all(strTextName).onblur() ;
+	}
+}
+
+
+
+//---------------------- Auto Tab Script
+function autojump(fieldName,nextFieldName,fakeMaxLength) {
+	// 5/4/07	JeffS - Added checks after each step to make sure not raising error
+	var myForm=document.forms[document.forms.length - 1];
+	
+	if (myForm) {
+		var myField=myForm.elements[fieldName];
+
+		if (myField) {
+			myField.nextField=myForm.elements[nextFieldName];
+
+			if (myField.nextField) {
+				if (myField.maxLength == null)
+				   myField.maxLength=fakeMaxLength;
+
+				myField.onkeydown=autojump_keyDown;
+				myField.onkeyup=autojump_keyUp;
+			}
+		}
+	}
+}
+
+function autojump_keyDown() {
+	this.beforeLength=this.value.length;
+	downStrokeField=this;
+}
+
+function autojump_keyUp() {
+	if (
+	   (this == downStrokeField) && 
+	   (this.value.length > this.beforeLength) && 
+	   (this.value.length >= this.maxLength)
+	   )
+	   this.nextField.focus();
+	downStrokeField=null;
+}
+//------------ End Auto Tab Script
+
+
+
+//Javascript Declaration of constants.  Also done above for ASP
+var GC_REQUIRED_TRUE	 = 10		//required
+var GC_REQUIRED_FALSE	 = 0		//optional
+var GC_REQUIRED_TRUE_MAX = 11		//must have max# of chars, entered
+
+var GC_REFORMAT_YES = 1		//YES
+var GC_REFORMAT_NO  = 0		//NO
+
+var GC_VALIDATION_STRING =  0				//string
+var GC_VALIDATION_ALPHA_STRING =  1			//alpha only string
+var GC_VALIDATION_UPPER_ALPHA_STRING =  2	//upper case alpha only string (convert lower case to upper)
+var GC_VALIDATION_LOWER_ALPHA_STRING =  3	//lower case alpha only string (convert upper case to lower)
+var GC_VALIDATION_UPPER_STRING =  4			//upper case alpha num string (convert lower case to upper)
+var GC_VALIDATION_LOWER_STRING =  5			//lower case alpha num string (convert upper case to lower)
+var GC_VALIDATION_NUMERIC =  6				//numeric only text field
+var GC_VALIDATION_ALPHANUM_INIT_CAP =  8	//AlphaNum, make 1st char uppercase (only if no other upper case)
+var GC_VALIDATION_INTEGER = 10				//integer  -9999
+var GC_VALIDATION_INTEGER_COMMA = 11		//integer  -9,999
+var GC_VALIDATION_REAL = 20					//real     -9999.99999
+var GC_VALIDATION_REAL_COMMA = 21			//real    -9,999.99999
+var GC_VALIDATION_CURRENCY = 30				//dollar.cents  -dddd.cc
+var GC_VALIDATION_CURRENCY_COMMA = 31		//dollar.cents -d,ddd.cc
+var GC_VALIDATION_PERCENT_0 = 40  			//percent   99
+var GC_VALIDATION_PERCENT_1 = 41  			//percent   99.9
+var GC_VALIDATION_PERCENT_2 = 42  			//percent   99.99
+var GC_VALIDATION_PERCENT_3 = 43  			//percent   99.999
+var GC_VALIDATION_PERCENT_4 = 44  			//percent   99.9999
+var GC_VALIDATION_PERCENT_5 = 45  			//percent   99.99999
+var GC_VALIDATION_PERCENT_6 = 46  			//percent   99.999999
+var GC_VALIDATION_PERCENT_7 = 47  			//percent   99.9999999
+var GC_VALIDATION_PERCENT_8 = 48  			//percent   99.99999999
+var GC_VALIDATION_PERCENT_9 = 49  			//percent   99.999999999
+var GC_VALIDATION_PHONE = 50				//phone number, 10 digit US format, allow allow x
+var GC_VALIDATION_ZIP = 51					//zip code  99999 or 99999-9999
+var GC_VALIDATION_SSN = 53					//SSN
+var GC_VALIDATION_EMAIL = 54				//Email
+var GC_VALIDATION_FEIN  = 55				//FEIN Number
+var GC_VALIDATION_ABS_FUTURE_DATE = 60		//absolute future date:  Todays and future dates
+var GC_VALIDATION_REL_FUTURE_DATE = 61		//relative future date: dates from the previous year and forward
+var GC_VALIDATION_ABS_PAST_DATE = 62		//absolute past date from the current day and before
+var GC_VALIDATION_DATE_50YRS = 63			//dates 50 years before or 50 years after current year
+var GC_VALIDATION_LAST_NUMERICFIELD = 70	//some case use "> 9 and < 70" to Set Field Size and Max Length For Numeric Fields 
+var GC_VALIDATION_SELECT_BOX = 99			//Select Box
+
+//'T3834 15JUN2004 TM...
+var GC_VALIDATION_ILDPR_GLN  = 80			//Valid GLN number for ILDPR 9999-9999-9999-9999
+var GC_MAXSIZE_ILDPR_GLN     = 19			//MAX NUMBER OF CHARS GLN number for ILDPR 9999-9999-9999-9999
+
+// TABLE: SCREENSQLTYPE
+var GC_SCREENSQLTYPE_RAW_TEXTBOX			= 0		//sql number (raw) input (does not put any tic's around the data)
+var GC_SCREENSQLTYPE_CHARTEXT_TEXTBOX		= 1		//sql char text box (one line text field on screen)
+var GC_SCREENSQLTYPE_CHARNBR_TEXTBOX		= 2		//sql char number (text field)
+var GC_SCREENSQLTYPE_SQLNBR_TEXTBOX			= 3		//sql number (sql numeric field)
+var GC_SCREENSQLTYPE_CHARDATE_TEXTBOX		= 4		//sql char date convert from mm/dd/yyyy to yyyymmdd order
+var GC_SCREENSQLTYPE_TELEPHONE_TEXTBOX		= 5		//sql char phone number (will reformat #s into US layout if 7 or 10 chars with no spaces or special chars)
+var GC_SCREENSQLTYPE_NUMBER_SELECTBOX		= 6		//sql number select box
+var GC_SCREENSQLTYPE_CHAR_SELECTBOX			= 7		//sql char select box
+var GC_SCREENSQLTYPE_CHARTEXT_TEXTFIELD		= 8		//sql char textfield
+var GC_SCREENSQLTYPE_SQLDOLLAR_TEXTBOX		= 9		//sql real dollar amount (shows 2 decimals and shows/removes commas)
+var GC_SCREENSQLTYPE_SQLINTEGER_TEXTBOX		= 10	//sql integer number (shows and removes commas)
+var GC_SCREENSQLTYPE_DISPLAYONLY_TEXTBOX	= 11	//dislays only does not allow updating
+var GC_SCREENSQLTYPE_NUMBER_CHECKBOX		= 12	//yes/no box for numeric field 0-no
+var GC_SCREENSQLTYPE_HIDDEN_TEXTBOX			= 13	//Hidden field
+var GC_SCREENSQLTYPE_PASSWORD_TEXTBOX		= 14	//password text
+var GC_SCREENSQLTYPE_CHAR_CHECKBOX			= 15	//yes/no box for char field N-no
+var GC_SCREENSQLTYPE_UPLOAD_FILEINPUT		= 16	//specifies a form input control for an File Upload
+
+//'T3834 15JUN2004 TM...
+var GC_SCREENSQLTYPE_ILDPR_GLN_TEXTBOX		= 17	//sql varchar "ILDPR" GLN number (will reformat #s into 9999-9999-9999-9999)
+
+/*File Upload Types...
+	Used with "FileUpload.asp"...
+	provides a Modal Dialog for a user to UPLOAD a file "location\name"
+	when the Dialog page closes, the file's "location\name" is inserted into
+	a text field on the web page that opened the Modal Dialog "FileUpload.asp"...
+*/
+var GC_UPLOAD_FILETYPE_SIGNATURE = "SIGN"
+
+
+// window.opener.opener.parent.function() - if in popup opened by a popup opened by main window
+// window.opener.parent.function() - if in popup opened by main window
+// parent.function() - if in main window
+
+var topwindow = null;
+topwindow = getTopWindow();
+
+//alert('name: ' + topwindow.name + '\nlocation: ' + topwindow.location.href + '\n  topwindow')
+
+function getTopWindow() {
+	try {
+		// added try-catch because if in a popup(2) of a popup(1), and popup(1) closed, and popup(2) does a page change, an ugly error msg was displayed
+		if ((window.opener) && (window.opener.opener) && (window.opener.opener.parent) && (window.opener.opener.parent.TopWindowPlaceholderFunction)) {
+			return window.opener.opener.parent;
+		} else if ((window.opener) && (window.opener.parent) && (window.opener.parent.TopWindowPlaceholderFunction)) {
+			return window.opener.parent;
+		} else if ((window.parent) && (window.parent.TopWindowPlaceholderFunction)) {
+			return window.parent;
+		} else {
+			return null;
+		}
+	}
+	catch(e) {
+		return null;
+	}
+}
+
+function SV2(name, label, ftype,  fManditory, fMin, fMax, fRefresh) {
+	if (topwindow != null)
+		topwindow.xSV2(name, label, ftype,  fManditory, fMin, fMax, fRefresh);
+}
+
+function SM(name, msg) {
+	if (topwindow != null)
+		topwindow.xSM(name, msg);
+}
+
+function SetFieldManditoryFlag(Field, Options) {
+	if (topwindow != null)
+		topwindow.xSetFieldManditoryFlag(Field, Options);
+}
+
+function SetFormatType(Field,Options) {
+	if (topwindow != null)
+		topwindow.xSetFormatType(Field, Options); 
+}
+
+function CheckForm(iform)  {
+	if (topwindow != null)
+		return topwindow.CheckForm(iform);
+}
+
+function WriteHelpMsg(msg) {
+	if (topwindow != null)
+		topwindow.WriteHelpMsg(msg);
+}
+
+function Trim(inString)
+{
+  //Utility to trim leading and trailing spaces
+  var retVal = "";
+  var start = 0;
+  while ((start < inString.length) && (inString.charAt(start) == ' '))
+  {
+    ++start;
+  }
+
+  var end = inString.length;
+  while ((end > 0) && (inString.charAt(end - 1) == ' '))
+  {
+    --end;
+  }
+
+  retVal = inString.substring(start, end);
+  return retVal;
+}
+
+
+function anyChecked()
+{
+	//Determines if any select boxes or check boxes are checked
+	var way = false;
+	var max = document.iform.elements.length-1;
+	for (var i = 0; i< max; ++i)
+	{
+		 if (document.iform.elements[i].checked == true)
+		 {
+		 	way = true;
+		 	break;
+		 }
+	}
+	return way;
+}
+
+// --></SCRIPT>
+  
+<META http-equiv="Content-Type" 
+content="text/html; charset=windows-1252"><TITLE>COVID19 Workflows</TITLE> <!-- Version Control Comments --> <!-- $Workfile: rptUserReportsExecute.asp $ --> <!-- $Revision: 14 $ --> <!-- $Date: 12/09/11 1:28a $ --> <!-- Do Not Edit --> 
+
+<STYLE>
+
+/*=====================================================================*/
+/*                         IMPORTANT NOTE !                            */
+/*                                                                     */
+/*  - Make sure this is included BEFORE the color_scheme.css file      */
+/*  - If included after this css, then they will override these colors */
+/*                                                                     */
+/*=====================================================================*/
+
+body {
+    padding: 5px;
+    font-family: Arial,Verdana,Helvetica;
+    font-weight: normal;
+    font-size: 11px;
+    overflow: scroll;
+    color: #000000;
+    background-color: #f0f0f0;
+}
+
+
+font {
+    font-weight: normal;
+    font-size: 11px;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+
+a, a:link, a:active, a:visited, a:hover {
+    color: #0000bf;
+    font-weight: bold;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: Arial, Verdana, Helvetica;
+    text-decoration: none;
+}
+
+/* Taken out for ILDPR
+a:hover	{color:#00ff33;}
+*/
+table {
+    font-family: Arial,Verdana,Helvetica;
+}
+
+td {
+    font-size: 11px;
+    font-family: Arial,Verdana,Helvetica;
+}
+
+th {
+    padding-left: 1px;
+    font-weight: bold;
+    font-size: 15px;
+    font-family: Arial, Verdana, Helvetica;
+    text-align: left;
+    color: #000000;
+    background-color: #6699ff;
+}
+
+h1 {
+    font-size: 24px;
+    font-family: Arial,Verdana,Helvetica;
+}
+
+img {
+    cursor: pointer;
+}
+
+select {
+    font-weight: normal;
+    font-size: 11px;
+    color: #000000;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+input {
+    font-size: 11px;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+
+/*---------------------------*/
+/*      CUSTOM CLASSES       */
+/*---------------------------*/
+
+.Border {
+    border: #000000 thin solid;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+
+.subheader {
+    font-weight: bold;
+    color: #000000;
+    background-color: #99ccff;
+}
+
+.IndentCell {
+    padding-left: 5px;
+    font-size: 11px;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.ColHeader {
+    font-weight: bold;
+    font-size: 13px;
+    text-align: center;
+    color: #000000;
+    background-color: #99ccff;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.Button {
+    left: 0px;
+    width: 125px;
+    cursor: pointer;
+    top: 1px;
+    text-decoration: none;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.Error {
+    font-weight: bold;
+    font-size: 15px;
+    color: #ff0000;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.Warning {
+    font-weight: bold;
+    font-size: 13px;
+    color: #ffd700;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.LeftLine {
+    padding-left: 5px;
+    font-size: 11px;
+    border-left: #000000 thin solid;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.Alert {
+    font-weight: bold;
+    font-size: 11px;
+    color: #ff0000;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.Normal, a.Normal {
+    font-weight: normal;
+    font-size: 11px;
+    cursor: pointer;
+    text-decoration: none;
+    color: #0000bf;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.Bold, a.Bold {
+    font-weight: bold;
+    font-size: 11px;
+    cursor: pointer;
+    text-decoration: none;
+    color: #0000bf;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.copyright {
+    font-weight: normal;
+    font-size: 10px;
+    text-decoration: none;
+    font-family: Helvetica, Verdana, Arial;
+}
+
+.MainHeader {
+    font-weight: bold;
+    font-size: 15px;
+    font-family: Arial, Verdana, Helvetica;
+    color: #000000;
+    background-color: #6699FF;
+}
+
+.BoldRed {
+    font-weight: bold;
+    font-size: 9pt;
+    cursor: pointer;
+    color: red;
+    font-family: Arial, Verdana, Helvetica;
+    text-decoration: none;
+}
+
+.mailBlock {
+    border: thin;
+    border-style: groove;
+    padding: 3px;
+    margin-right: 8px;
+}
+
+.SubHeaderLink {
+    background-color: #99ccff;
+    border: medium none;
+    padding-left: 3px;
+    font-weight: bold;
+    font-size: 13px;
+    color: #0000bf;
+    font-family: Arial, Verdana, Helvetica;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.titleBar {
+    border: 1px outset;
+    padding: 2px;
+    background-color: #CCCCCC;
+    color: #000000;
+    font-family: Arial, Verdana, Helvetica;
+    font-size: 11px;
+    font-weight: bold;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/*----- tab related -----*/
+.tab {
+    position: relative;
+    padding: 2px 6px 2px 6px;
+    margin: 0 -2px 0 0;
+    border: thin groove;
+    text-align: left;
+    font-family: Arial, Helvetica, Verdana, Sans-Serif;
+    font-size: 8pt;
+    font-weight: bold;
+    background-color: #DCDCDC;
+    color: #000000;
+    cursor: pointer;
+    white-space: nowrap;
+    z-index: 100;
+}
+
+.tabActive {
+    border-bottom: none;
+    padding-bottom: 4px;
+    color: #000000;
+    background-color: #99CCFF;
+    z-index: 1000;
+}
+
+.tabActiveGreen {
+    border-bottom: none;
+    padding-bottom: 4px;
+    color: #000000;
+    background-color: #99CC99;
+    z-index: 1000;
+}
+
+.tabRow {
+    position: relative;
+    padding-left: 5px;
+    padding-bottom: 1px;
+    z-index: 1000;
+}
+
+.tabBackRow {
+    margin-left: +8px;
+    padding-bottom: 5px;
+}
+
+.tabContentContainer {
+    position: relative;
+    width: 100%;
+    min-height: 150px;
+    display: block;
+    margin: 1px 0 0 0;
+    border: thin groove;
+    padding: 5px;
+    background-color: #99CCFF;
+    z-index: 500;
+}
+
+.tabContentContainerGreen {
+    position: relative;
+    width: 100%;
+    min-height: 150px;
+    display: block;
+    margin: 1px 0 0 0;
+    border: thin groove;
+    padding: 5px;
+    background-color: #99CC99;
+    z-index: 500;
+}
+
+.tabContent {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: none;
+    /* margin: 1px 0 0 0; */
+    border: none;
+    background-color: #F0F0F0; /* same color as body */
+    padding: 0;
+    z-index: 400;
+}
+
+.tabContentTitle {
+    border-bottom: thin solid black;
+    padding-bottom: 2px;
+    padding-left: 2px;
+    background-color: #99CCFF;
+    font-family: Arial, Verdana, Helvetica;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.tabContentTitleGreen {
+    border-bottom: thin solid black;
+    padding-bottom: 2px;
+    padding-left: 2px;
+    background-color: #99CC99;
+    font-family: Arial, Verdana, Helvetica;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+
+
+
+/*--- end of tab related ---*/
+
+.rptWizardHeader {
+    padding-left: 1px;
+    font-weight: bold;
+    font-size: 16px;
+    color: #000000;
+    font-family: Arial, Verdana, Helvetica;
+    text-align: left;
+    background-color: #D3D3D3;
+}
+
+
+/*--- related to view pane links ---*/
+
+.paneLink, .linkHover {
+    font-size: 8pt;
+    font-weight: normal;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.paneLink {
+    color: #0000BF;
+}
+/* same color A:link */
+.linkHover {
+    color: #00FF33;
+}
+/* same color A:hover */
+
+/*--- end of view pane links ---*/
+
+
+.back {
+    color: #FFFFFF;
+}
+
+.Blue {
+    color: #0000FF;
+}
+
+.boxIn {
+    border-style: inset;
+    border-width: thin;
+}
+
+.boxOut {
+    border-style: outset;
+    border-width: thin;
+}
+
+.btnADD {
+    color: #006633;
+}
+
+.btnDEL {
+    color: #FF0000;
+}
+
+.btnUPD {
+    color: #0000FF;
+}
+
+.clear {
+    color: #FFFBF0;
+    background-color: transparent;
+}
+
+.error {
+    color: #FF0000;
+}
+
+.fatalError {
+    color: #FF0000;
+}
+
+.grid {
+    border-style: solid;
+    border-width: thin;
+    border-color: #000000;
+}
+
+.groove {
+    border-style: groove;
+    border-width: thin;
+}
+
+.headerLeft {
+    color: #000000;
+    background-color: #99CC99;
+}
+
+.headerRight {
+    color: #000000;
+    background-color: #99CC99;
+}
+
+.hide {
+    display: none;
+}
+
+.Hidden {
+    display: none;
+    visibility: hidden;
+}
+
+.hilite {
+    background-color: #FFFF99;
+}
+/* lite yellow */
+.indentCell {
+    padding-left: 5px;
+}
+
+.insetCell {
+    border-style: inset;
+    border-width: thin;
+}
+
+.instructions {
+    color: #000099;
+}
+
+.Invisible {
+    visibility: hidden;
+}
+
+.legacyData {
+    color: #990000;
+}
+
+.lineTop {
+    border-top: thin solid #000000;
+}
+
+.lineBottom {
+    border-bottom: thin solid #000000;
+}
+
+.lineLeft {
+    border-left: thin solid #000000;
+}
+
+.lineRight {
+    border-right: thin solid #000000;
+}
+
+.noline {
+    text-decoration: none;
+}
+
+.noRecords {
+    font-weight: bold;
+    background-color: #FFFF99;
+}
+
+.noticeMe {
+    color: #990000;
+}
+
+.outsetCell {
+    border-style: outset;
+    border-width: thin;
+}
+
+.padTOPBTM2 {
+    padding-bottom: 2px;
+    padding-top: 2px;
+}
+
+.padTOPBTM4 {
+    padding-bottom: 4px;
+    padding-top: 4px;
+}
+
+.pageHREF {
+    color: #FFFFCC;
+}
+
+.pageTitle {
+    color: #000000;
+    background-color: #6699FF;
+}
+
+.Red {
+    COLOR: #FF0000;
+}
+
+.RowHiLite {
+    background-color: #E0E0E0;
+}
+/* lite gray */
+.section {
+    color: #000000;
+    background-color: #6699FF;
+}
+
+.selectRow {
+    background-color: #FFFFCC;
+}
+
+.show {
+    display: block;
+}
+
+.Shown {
+    font-weight: normal;
+    font-size: 11px;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.subHeader {
+    font-weight: bold;
+    color: #000000;
+    background-color: #99CCFF;
+}
+
+.subSection {
+    font-weight: bold;
+    color: #000000;
+    background-color: #6699FF;
+}
+
+.subTitle {
+    font-weight: bold;
+    color: #000000;
+    background-color: #99CCFF;
+}
+
+.tblHeader {
+    font-weight: bold;
+    color: #000000;
+    background-color: #99CCFF;
+}
+
+.warning {
+    color: #FF0000;
+}
+
+.warningMsg {
+    color: #FF0000;
+}
+
+/*===========Start UtilMuliSearch Related=========================================*/
+/*
+		TD {white-space: nowrap;}
+*/
+.clsPrefix {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 60px;
+    height: 21px;
+}
+
+input.clsPrefix {
+    background-color: transparent;
+}
+
+span.clsPrefix {
+    text-align: right;
+    font: bolder 7pt Arial;
+    background-color: white;
+    color: #B3B3B3;
+    letter-spacing: 1px;
+    padding-right: 4px;
+}
+
+
+span.clsContainer {
+    padding-bottom: 5px
+}
+
+.clsNumber {
+    position: absolute;
+    top: 0px;
+    left: 65px;
+    width: 60px;
+    height: 21px;
+}
+
+input.clsNumber {
+    background-color: transparent;
+}
+
+span.clsNumber {
+    text-align: right;
+    font: bolder 7pt Arial;
+    background-color: white;
+    color: #B3B3B3;
+    letter-spacing: 1px;
+    padding-right: 4px;
+}
+
+.clsSubCat {
+    position: absolute;
+    top: 0px;
+    left: 130px;
+    width: 80px;
+    height: 21px;
+}
+
+input.clsSubCat {
+    background-color: transparent;
+}
+
+span.clsSubCat {
+    text-align: right;
+    font: bolder 7pt Arial;
+    background-color: white;
+    color: #B3B3B3;
+    letter-spacing: 1px;
+    padding-right: 4px;
+}
+
+.thclass11px, .thClass11px {
+    background-color: #99ccff;
+    border-bottom: black 1px solid;
+    padding-left: 3px;
+    font-weight: bold;
+    font-size: 11px;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.NoWrap {
+    white-space: nowrap;
+}
+
+textarea {
+    white-space: pre-wrap;
+    tab-size: 4;
+    -moz-tab-size: 4;
+    -o-tab-size: 4;
+}
+
+
+
+/* CodeMirror settings for autoresize http://codemirror.net/demo/resize.html */
+.CodeMirror {
+    border: 1px solid #eee;
+    height: auto;
+    margin-bottom: .5em;
+}
+
+.CodeMirror-scroll {
+    overflow-y: hidden;
+    overflow-x: auto;
+}
+
+
+/* SyntaxHighlighter */
+.codeblock > div > div {
+    border: 1px solid #aaa;
+}
+
+.codeblock .toolbar {
+    display: none;
+}
+
+.codeblock .syntaxhighlighter {
+    margin: .1em 0 .1em 0 !important;
+}
+
+
+	.ReportHeader
+		{
+		PADDING-LEFT: 1px;
+		FONT-WEIGHT: bold;
+		FONT-SIZE: 11px;
+		COLOR: #000000;
+		FONT-FAMILY: Arial, Verdana, Helvetica;
+		TEXT-ALIGN: left;
+		BACKGROUND-COLOR:#ccffff;
+		}
+</STYLE>
+ </HEAD> 
+<BODY onload="window.focus()"><SPAN class="hidden" id="searchMsg">
+<P><B>Searching Database.&nbsp;&nbsp;Please Wait...</B></P></SPAN><B>		 
+<SCRIPT language="JavaScript"><!--
+	
+		document.all['searchMsg'].className="hidden";
+
+		// --></SCRIPT>
+		 
+<TABLE width="600" id="ActiveTable" bordercolorlight="#c0c0c0" bordercolordark="#c0c0c0" 
+style="behavior: url(includes/tableAct.htc);" border="1" cellspacing="0" 
+cellpadding="2" hlcolor="#BEC5DE" slcolor="#ffffcc" dragcolor="gray">
+  <THEAD>
+  <TR>
+    <TD class="ReportHeader" colspan="10"><BIG>COVID19 
+      Workflows</BIG><BR><BR><U><I>Filtered By</I></U><BR>
+      <LI>CREDENTIALTYPEPREFIX = 043 - LICENSED PRACTICAL NURSE<BR>
+      <LI>01/01/2019 to 10/06/2021<BR><BR><I><SMALL>10/6/2021 at 3:26:11 
+      PM</SMALL></I>&nbsp;</LI></TD></TR>
+  <TR class="SamePage" bgcolor="#99ccff">
+    <TD class="SubHeader">Profession</TD>
+    <TD class="SubHeader">WorkflowName</TD>
+    <TD class="SubHeader">ContactName</TD>
+    <TD class="SubHeader">formattedcredential</TD>
+    <TD class="SubHeader">Credential</TD>
+    <TD class="SubHeader">ExpirationDate</TD>
+    <TD class="SubHeader">Status</TD>
+    <TD class="SubHeader">WFStartDate</TD>
+    <TD class="SubHeader">WFDueDate</TD>
+    <TD class="SubHeader">Description</TD></TR></THEAD>
+  <TBODY>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">MARIA ARRANAGA-GARCIA</TD>
+    <TD align="left" valign="top">043.084622</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2326" target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">GENA L CHILDRESS</TD>
+    <TD align="left" valign="top">043.075263</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=13404" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JOANN M GOLIS</TD>
+    <TD align="left" valign="top">043.062569</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=28491" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">WENDIE MARIE GOODWIN</TD>
+    <TD align="left" valign="top">043.086445</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=28734" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">ANDREA L SCHNEIDER</TD>
+    <TD align="left" valign="top">043.090422</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=40243" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">KATHLEEN J MCFALLS</TD>
+    <TD align="left" valign="top">043.078197</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=48371" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">KAREN E PEDERSEN</TD>
+    <TD align="left" valign="top">043.082891</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=61139" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">CHERBONIA ROSS</TD>
+    <TD align="left" valign="top">043.076986</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=67999" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">MELISSA J SIMMONS</TD>
+    <TD align="left" valign="top">043.088368</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=63827" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">YOLANDA WATKINS</TD>
+    <TD align="left" valign="top">043.069213</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=84138" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">AMANDA JO LEIDNER</TD>
+    <TD align="left" valign="top">043.083327</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=84339" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">TARA A PARKS</TD>
+    <TD align="left" valign="top">043.101645</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=558522" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">ASHLEY N BARRETT</TD>
+    <TD align="left" valign="top">043.102387</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=1585187" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">ELIZABETH R MCBEATH</TD>
+    <TD align="left" valign="top">043.104770</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2325759" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">NICOLE L MANLEY</TD>
+    <TD align="left" valign="top">043.114476</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3174223" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JEANNIE ECHOLS</TD>
+    <TD align="left" valign="top">043.106296</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2841806" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">SHYLA M JAMES</TD>
+    <TD align="left" valign="top">043.106097</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2826205" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JESSICA M STICE</TD>
+    <TD align="left" valign="top">043.106590</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2853976" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JESSICA L KELDERHOUSE</TD>
+    <TD align="left" valign="top">043.109236</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2941830" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">CAREESI M LONG</TD>
+    <TD align="left" valign="top">043.111683</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2983387" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">DOMINIQUE L COOK</TD>
+    <TD align="left" valign="top">043.112746</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3090327" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">SAMANTHA H TAYLOR</TD>
+    <TD align="left" valign="top">043.114027</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3143457" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">RONDA K LAROSE</TD>
+    <TD align="left" valign="top">043.113694</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3131023" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">TANISHA DASHONNE DADY</TD>
+    <TD align="left" valign="top">043.119339</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3383517" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JERICA L PETTIT</TD>
+    <TD align="left" valign="top">043.120109</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3444171" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">CINDY L STECK</TD>
+    <TD align="left" valign="top">043.122892</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3609757" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">Amanda D Hake</TD>
+    <TD align="left" valign="top">043.125075</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3698384" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">03/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">TAMELA JACKSON FREEMAN</TD>
+    <TD align="left" valign="top">043.089950</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=25841" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/28/2020</TD>
+    <TD align="left" valign="top">03/28/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">CORINE M MALONE</TD>
+    <TD align="left" valign="top">043.066585</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=49266" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/30/2020</TD>
+    <TD align="left" valign="top">03/30/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">MELANNIE D WILSON</TD>
+    <TD align="left" valign="top">043.106323</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2847576" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/30/2020</TD>
+    <TD align="left" valign="top">03/30/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">THERESEA M ROWE</TD>
+    <TD align="left" valign="top">043.118543</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3379680" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/30/2020</TD>
+    <TD align="left" valign="top">03/30/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">MELINDA L BERRY</TD>
+    <TD align="left" valign="top">043.112677</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3049451" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">03/30/2020</TD>
+    <TD align="left" valign="top">03/30/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">TAYLOR M MCVEY</TD>
+    <TD align="left" valign="top">043.119798</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3439258" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">03/31/2020</TD>
+    <TD align="left" valign="top">03/31/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">SUSAN HOLMES</TD>
+    <TD align="left" valign="top">043.058477</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=36013" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">03/31/2020</TD>
+    <TD align="left" valign="top">03/31/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">PATRICIA L FRENCH</TD>
+    <TD align="left" valign="top">043.086575</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=25887" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">03/31/2020</TD>
+    <TD align="left" valign="top">03/31/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">MELANIE A LEWALLEN COATES</TD>
+    <TD align="left" valign="top">043.073329</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=14366" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/31/2020</TD>
+    <TD align="left" valign="top">03/31/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">AMANDA L HUGHES</TD>
+    <TD align="left" valign="top">043.104290</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2308408" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/01/2020</TD>
+    <TD align="left" valign="top">04/01/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">RYAN I HOOK</TD>
+    <TD align="left" valign="top">043.119114</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3423406" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/01/2020</TD>
+    <TD align="left" valign="top">04/01/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">TESSA JONES</TD>
+    <TD align="left" valign="top">043.112400</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3050964" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JESSICA R RABADAN</TD>
+    <TD align="left" valign="top">043.108478</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2927060" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">ROBYN K MOTSINGER</TD>
+    <TD align="left" valign="top">043.109260</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2944717" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">MICHELLE MEASHIA VOGEL</TD>
+    <TD align="left" valign="top">043.107926</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2879602" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">DOROTHY YACKLEY</TD>
+    <TD align="left" valign="top">043.023530</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=88996" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JOYCE ANN WARFIELD</TD>
+    <TD align="left" valign="top">043.071555</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=83768" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">MINDORA L CUMMINS</TD>
+    <TD align="left" valign="top">043.084983</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=17082" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">TAMRA L BEARDSLEY</TD>
+    <TD align="left" valign="top">043.076711</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=4748" target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">PAULA L ANNINO</TD>
+    <TD align="left" valign="top">043.070381</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=1937" target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">MARYANN M GARCIA</TD>
+    <TD align="left" valign="top">043.078180</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=26756" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">DEBRA SUE HICKEY</TD>
+    <TD align="left" valign="top">043.047576</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=34642" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">WENDY H LYNCH</TD>
+    <TD align="left" valign="top">043.032574</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=48646" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210131</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">DIANE E MATTHEWS</TD>
+    <TD align="left" valign="top">043.057143</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=50646" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">HEATHER MARIE NIEDERKORN</TD>
+    <TD align="left" valign="top">043.083387</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=69009" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">04/02/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">KENYATTA B VACCARO</TD>
+    <TD align="left" valign="top">043.083866</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=58536" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/07/2020</TD>
+    <TD align="left" valign="top">04/07/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">CELESTE J JENKINS</TD>
+    <TD align="left" valign="top">043.088863</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=39016" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/07/2020</TD>
+    <TD align="left" valign="top">04/07/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">ANGELA K VANDERMARK</TD>
+    <TD align="left" valign="top">043.107889</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2898583" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/07/2020</TD>
+    <TD align="left" valign="top">04/07/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">HALEY J DRESSLER-OSBORN</TD>
+    <TD align="left" valign="top">043.125916</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3795623" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/08/2020</TD>
+    <TD align="left" valign="top">04/08/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JOLIE A YEAGER</TD>
+    <TD align="left" valign="top">043.080033</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=47966" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/09/2020</TD>
+    <TD align="left" valign="top">04/09/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JENNIFER S GOOD</TD>
+    <TD align="left" valign="top">043.077866</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=18677" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/09/2020</TD>
+    <TD align="left" valign="top">04/09/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">SARAH M WEBER</TD>
+    <TD align="left" valign="top">043.117726</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3349957" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/10/2020</TD>
+    <TD align="left" valign="top">04/10/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JALEESA MONET WILSON</TD>
+    <TD align="left" valign="top">043.121860</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3528666" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/13/2020</TD>
+    <TD align="left" valign="top">04/13/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">PAULA JOANNE DREW</TD>
+    <TD align="left" valign="top">043.058486</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=20876" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/13/2020</TD>
+    <TD align="left" valign="top">04/13/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">GAIL A BIASIELLO</TD>
+    <TD align="left" valign="top">043.041043</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=5966" target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/13/2020</TD>
+    <TD align="left" valign="top">04/13/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">MICHELLE M POPADIUK</TD>
+    <TD align="left" valign="top">043.080750</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=63036" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/15/2020</TD>
+    <TD align="left" valign="top">04/15/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">MALLORY S ANDERSON</TD>
+    <TD align="left" valign="top">043.106753</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2856021" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/16/2020</TD>
+    <TD align="left" valign="top">04/16/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">Kate Maxine Miller</TD>
+    <TD align="left" valign="top">043.124627</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3707353" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/16/2020</TD>
+    <TD align="left" valign="top">04/16/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">LASHENNA T MOORE</TD>
+    <TD align="left" valign="top">043.120127</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3155724" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/17/2020</TD>
+    <TD align="left" valign="top">04/17/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">CHRISTIAN MARIE WILKIE</TD>
+    <TD align="left" valign="top">043.121621</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2833093" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/17/2020</TD>
+    <TD align="left" valign="top">04/17/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">LISA R HAMPTON</TD>
+    <TD align="left" valign="top">043.077747</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=31512" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/17/2020</TD>
+    <TD align="left" valign="top">04/17/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JULIE A ANDERSON</TD>
+    <TD align="left" valign="top">043.110307</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2984993" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/21/2020</TD>
+    <TD align="left" valign="top">04/21/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">ROBERTA ANNE MOORMAN</TD>
+    <TD align="left" valign="top">043.103911</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2301244" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/21/2020</TD>
+    <TD align="left" valign="top">04/21/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">CYNTHIA L JONES</TD>
+    <TD align="left" valign="top">043.122814</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=13812" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/22/2020</TD>
+    <TD align="left" valign="top">04/22/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">ZAHIRA G CASTRO</TD>
+    <TD align="left" valign="top">043.089580</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=12683" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/24/2020</TD>
+    <TD align="left" valign="top">04/24/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">AMBREA N FRANCO</TD>
+    <TD align="left" valign="top">043.119472</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3435930" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/27/2020</TD>
+    <TD align="left" valign="top">04/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">MICHELE N JOHNSON</TD>
+    <TD align="left" valign="top">043.120746</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3487958" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/28/2020</TD>
+    <TD align="left" valign="top">04/28/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">SAHLEE S LANDES</TD>
+    <TD align="left" valign="top">043.075515</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=10780" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/28/2020</TD>
+    <TD align="left" valign="top">04/28/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">NICOLE A CAMPBELL</TD>
+    <TD align="left" valign="top">043.104726</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2329049" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/29/2020</TD>
+    <TD align="left" valign="top">04/29/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">Lindsey N Knapp</TD>
+    <TD align="left" valign="top">043.112440</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3051952" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">04/30/2020</TD>
+    <TD align="left" valign="top">04/30/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">KATHLEEN BENNETT</TD>
+    <TD align="left" valign="top">043.027011</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=5442" target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">05/01/2020</TD>
+    <TD align="left" valign="top">05/01/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">ISMAEL R CURIEL</TD>
+    <TD align="left" valign="top">043.123822</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3656071" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">05/04/2020</TD>
+    <TD align="left" valign="top">05/04/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">KATHLEEN MARIE B CHRISTENSEN</TD>
+    <TD align="left" valign="top">043.053364</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=13524" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">05/05/2020</TD>
+    <TD align="left" valign="top">05/05/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">Helena Sharp</TD>
+    <TD align="left" valign="top">043.125180</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3682652" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">05/11/2020</TD>
+    <TD align="left" valign="top">05/11/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">BRIANNA J LENEAR</TD>
+    <TD align="left" valign="top">043.121433</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3524886" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">05/11/2020</TD>
+    <TD align="left" valign="top">05/11/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">MARIALEANN B NAVATA</TD>
+    <TD align="left" valign="top">043.118340</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3256999" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">05/11/2020</TD>
+    <TD align="left" valign="top">05/11/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">DEBRA MARGARET WILLIS</TD>
+    <TD align="left" valign="top">043.040339</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=87172" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">05/18/2020</TD>
+    <TD align="left" valign="top">05/18/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">FERLECIA S WEST</TD>
+    <TD align="left" valign="top">043.103404</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2267350" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">05/19/2020</TD>
+    <TD align="left" valign="top">05/19/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">CRYSTAL L BIBBS</TD>
+    <TD align="left" valign="top">043.104858</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2333998" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">05/19/2020</TD>
+    <TD align="left" valign="top">05/19/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">LYIEKA R GREEN</TD>
+    <TD align="left" valign="top">043.102216</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=554194" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">05/20/2020</TD>
+    <TD align="left" valign="top">05/20/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">VICTORIA A DOWDY</TD>
+    <TD align="left" valign="top">043.101129</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=544739" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">05/28/2020</TD>
+    <TD align="left" valign="top">05/28/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">ROMUALDO SUAREZ</TD>
+    <TD align="left" valign="top">043.104998</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2338020" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">05/28/2020</TD>
+    <TD align="left" valign="top">05/28/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JOANNE L COOK</TD>
+    <TD align="left" valign="top">043.078836</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=15396" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">06/02/2020</TD>
+    <TD align="left" valign="top">06/02/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">SHARON D HILL</TD>
+    <TD align="left" valign="top">043.052807</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=35012" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">06/15/2020</TD>
+    <TD align="left" valign="top">06/15/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">SHARON WILLIAMS</TD>
+    <TD align="left" valign="top">043.091023</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=9619" target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">06/17/2020</TD>
+    <TD align="left" valign="top">06/17/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">TANYA COUTANT MASCARI</TD>
+    <TD align="left" valign="top">043.073617</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=16071" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">06/18/2020</TD>
+    <TD align="left" valign="top">06/18/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">LINDA R HOLLAND</TD>
+    <TD align="left" valign="top">043.037890</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=35815" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">06/23/2020</TD>
+    <TD align="left" valign="top">06/23/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">SHAYNELLA S WILLIAMS</TD>
+    <TD align="left" valign="top">043.112927</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3083685" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">06/25/2020</TD>
+    <TD align="left" valign="top">06/25/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JEANNE R HARNEY</TD>
+    <TD align="left" valign="top">043.083625</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=32110" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">06/26/2020</TD>
+    <TD align="left" valign="top">06/26/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JANE ELLEN HUNTER</TD>
+    <TD align="left" valign="top">043.069574</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=37497" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">06/29/2020</TD>
+    <TD align="left" valign="top">06/29/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">TERESITA J KLUMAK</TD>
+    <TD align="left" valign="top">043.087574</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=43355" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">06/29/2020</TD>
+    <TD align="left" valign="top">06/29/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">IVA S JONES</TD>
+    <TD align="left" valign="top">043.081371</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=40567" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">07/13/2020</TD>
+    <TD align="left" valign="top">07/13/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">IVANA SKULJEVIC</TD>
+    <TD align="left" valign="top">043.104876</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2331505" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">07/21/2020</TD>
+    <TD align="left" valign="top">07/21/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">ROBBIN F WALKER</TD>
+    <TD align="left" valign="top">043.083831</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=657" target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">07/23/2020</TD>
+    <TD align="left" valign="top">07/23/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">TERESA LYN BROOKE</TD>
+    <TD align="left" valign="top">043.106580</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2852652" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">07/27/2020</TD>
+    <TD align="left" valign="top">07/27/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">CRYSTAL NICOLE SANDERS</TD>
+    <TD align="left" valign="top">043.122697</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3596375" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">08/11/2020</TD>
+    <TD align="left" valign="top">08/11/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">BRITTNEY S PILATE</TD>
+    <TD align="left" valign="top">043.115443</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3203214" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20200930</TD>
+    <TD align="left" valign="top">NOT RENEWED</TD>
+    <TD align="left" valign="top">08/20/2020</TD>
+    <TD align="left" valign="top">08/20/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">EILEEN C SKILES</TD>
+    <TD align="left" valign="top">043.071774</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=73198" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">09/08/2020</TD>
+    <TD align="left" valign="top">09/08/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">EILEEN C SKILES</TD>
+    <TD align="left" valign="top">043.071774</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=73198" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">09/09/2020</TD>
+    <TD align="left" valign="top">09/09/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">NICOLE G TAYLOR</TD>
+    <TD align="left" valign="top">043.121617</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3519111" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">09/15/2020</TD>
+    <TD align="left" valign="top">09/15/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">INEDRIA L SMITH</TD>
+    <TD align="left" valign="top">043.110712</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3011186" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">12/10/2020</TD>
+    <TD align="left" valign="top">12/10/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">ROSHAWNDA LENEE YOUNG</TD>
+    <TD align="left" valign="top">043.103011</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=941573" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">12/10/2020</TD>
+    <TD align="left" valign="top">12/10/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">EILEEN C SKILES</TD>
+    <TD align="left" valign="top">043.071774</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=73198" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">12/11/2020</TD>
+    <TD align="left" valign="top">12/11/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">RONDA K LAROSE</TD>
+    <TD align="left" valign="top">043.113694</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3131023" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">12/11/2020</TD>
+    <TD align="left" valign="top">12/11/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">EBONY M MCDOWELL</TD>
+    <TD align="left" valign="top">043.118925</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3408546" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">12/14/2020</TD>
+    <TD align="left" valign="top">12/14/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">MARY L KOCH</TD>
+    <TD align="left" valign="top">043.026158</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=43620" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">12/14/2020</TD>
+    <TD align="left" valign="top">12/14/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">MELANNIE D WILSON</TD>
+    <TD align="left" valign="top">043.106323</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2847576" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">12/21/2020</TD>
+    <TD align="left" valign="top">12/21/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JOLIE A YEAGER</TD>
+    <TD align="left" valign="top">043.080033</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=47966" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">12/22/2020</TD>
+    <TD align="left" valign="top">12/22/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">HALEY J DRESSLER-OSBORN</TD>
+    <TD align="left" valign="top">043.125916</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3795623" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">12/22/2020</TD>
+    <TD align="left" valign="top">12/22/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">SHAYNELLA S WILLIAMS</TD>
+    <TD align="left" valign="top">043.112927</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3083685" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">12/28/2020</TD>
+    <TD align="left" valign="top">12/28/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">SHYLA M JAMES</TD>
+    <TD align="left" valign="top">043.106097</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2826205" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">12/30/2020</TD>
+    <TD align="left" valign="top">12/30/2020</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">RYAN I HOOK</TD>
+    <TD align="left" valign="top">043.119114</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3423406" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">01/19/2021</TD>
+    <TD align="left" valign="top">01/19/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">NICOLE G TAYLOR</TD>
+    <TD align="left" valign="top">043.121617</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3519111" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">01/21/2021</TD>
+    <TD align="left" valign="top">01/21/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">LYIEKA R GREEN</TD>
+    <TD align="left" valign="top">043.102216</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=554194" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">01/21/2021</TD>
+    <TD align="left" valign="top">01/21/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">CRYSTAL L BIBBS</TD>
+    <TD align="left" valign="top">043.104858</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2333998" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">01/26/2021</TD>
+    <TD align="left" valign="top">01/26/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">DIANE SERRANO</TD>
+    <TD align="left" valign="top">043.089871</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=71410" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/02/2021</TD>
+    <TD align="left" valign="top">02/02/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">SONYA D TURNER-POWELL</TD>
+    <TD align="left" valign="top">043.076921</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=81181" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/02/2021</TD>
+    <TD align="left" valign="top">02/02/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">ANGELA M FOY</TD>
+    <TD align="left" valign="top">043.114438</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3132920" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/02/2021</TD>
+    <TD align="left" valign="top">02/02/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">WILLY WILLIAM</TD>
+    <TD align="left" valign="top">043.117980</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3300275" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/02/2021</TD>
+    <TD align="left" valign="top">02/02/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">TONI L FUNAI</TD>
+    <TD align="left" valign="top">043.079449</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=81690" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/03/2021</TD>
+    <TD align="left" valign="top">02/03/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">MICHELLE PLUMB</TD>
+    <TD align="left" valign="top">043.076026</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=26420" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/03/2021</TD>
+    <TD align="left" valign="top">02/03/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">TANISHA S STEWART</TD>
+    <TD align="left" valign="top">043.088059</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=25524" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/03/2021</TD>
+    <TD align="left" valign="top">02/03/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">MANDY L KIME</TD>
+    <TD align="left" valign="top">043.087923</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=311" target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/04/2021</TD>
+    <TD align="left" valign="top">02/04/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">SHIARRALYN BALADAD</TD>
+    <TD align="left" valign="top">043.118534</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3382883" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/04/2021</TD>
+    <TD align="left" valign="top">02/04/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JEAN-MARIE K NYEMBWE</TD>
+    <TD align="left" valign="top">043.114602</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3191524" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/04/2021</TD>
+    <TD align="left" valign="top">02/04/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">BRITTNEY A MOODY</TD>
+    <TD align="left" valign="top">043.125497</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3753137" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/04/2021</TD>
+    <TD align="left" valign="top">02/04/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">KAREN G WHEETLEY</TD>
+    <TD align="left" valign="top">043.061719</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=85410" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/05/2021</TD>
+    <TD align="left" valign="top">02/05/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">BREHNA C COX</TD>
+    <TD align="left" valign="top">043.124731</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3713014" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/07/2021</TD>
+    <TD align="left" valign="top">02/07/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">ALEXANDREA E ROBINSON</TD>
+    <TD align="left" valign="top">043.122885</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3594634" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/07/2021</TD>
+    <TD align="left" valign="top">02/07/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">ANDREA K RINEY</TD>
+    <TD align="left" valign="top">043.115034</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3238275" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/07/2021</TD>
+    <TD align="left" valign="top">02/07/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">Ehigie Omwanghe</TD>
+    <TD align="left" valign="top">043.123459</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3602038" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/07/2021</TD>
+    <TD align="left" valign="top">02/07/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">LATOYA D EDWARDS</TD>
+    <TD align="left" valign="top">043.123909</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3605699" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/08/2021</TD>
+    <TD align="left" valign="top">02/08/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JODY LYNNE BAKER</TD>
+    <TD align="left" valign="top">043.118795</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3364997" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/08/2021</TD>
+    <TD align="left" valign="top">02/08/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">DEBORAH O YUSUF</TD>
+    <TD align="left" valign="top">043.125626</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3758625" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/08/2021</TD>
+    <TD align="left" valign="top">02/08/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">NORMA JEAN CARRICO</TD>
+    <TD align="left" valign="top">043.090939</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=12178" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/08/2021</TD>
+    <TD align="left" valign="top">02/08/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JANET ASHANA</TD>
+    <TD align="left" valign="top">043.055619</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2425" target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/09/2021</TD>
+    <TD align="left" valign="top">02/09/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">KAREN E PEDERSEN</TD>
+    <TD align="left" valign="top">043.082891</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=61139" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/09/2021</TD>
+    <TD align="left" valign="top">02/09/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">DIANE K WARBURTON</TD>
+    <TD align="left" valign="top">043.037697</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=83617" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/09/2021</TD>
+    <TD align="left" valign="top">02/09/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">SHAQUERA M RICKS</TD>
+    <TD align="left" valign="top">043.122958</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3608675" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/09/2021</TD>
+    <TD align="left" valign="top">02/09/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JANET EKAETTE</TD>
+    <TD align="left" valign="top">043.124032</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3672399" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/09/2021</TD>
+    <TD align="left" valign="top">02/09/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">CELERINO S SIOSON</TD>
+    <TD align="left" valign="top">043.118272</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3373648" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/09/2021</TD>
+    <TD align="left" valign="top">02/09/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">BRENDA SCARBOROUGH</TD>
+    <TD align="left" valign="top">043.054483</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=69781" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/10/2021</TD>
+    <TD align="left" valign="top">02/10/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">HOLLY M MOORE</TD>
+    <TD align="left" valign="top">043.088686</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=55289" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/11/2021</TD>
+    <TD align="left" valign="top">02/11/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">DENISE M SMITH</TD>
+    <TD align="left" valign="top">043.061561</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=73726" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/11/2021</TD>
+    <TD align="left" valign="top">02/11/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">CAROL A SHEINER</TD>
+    <TD align="left" valign="top">043.029942</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=71933" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/16/2021</TD>
+    <TD align="left" valign="top">02/16/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">TWITCHY FAEZA SIDDIQUI</TD>
+    <TD align="left" valign="top">043.050458</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=72554" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/16/2021</TD>
+    <TD align="left" valign="top">02/16/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">TARA RAE BALKAN</TD>
+    <TD align="left" valign="top">043.125406</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3711692" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/16/2021</TD>
+    <TD align="left" valign="top">02/16/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">NIKKI KAY BARCAI</TD>
+    <TD align="left" valign="top">043.108429</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2927014" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/17/2021</TD>
+    <TD align="left" valign="top">02/17/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">GARY DURANE PRESSLEY</TD>
+    <TD align="left" valign="top">043.080861</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=63537" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/17/2021</TD>
+    <TD align="left" valign="top">02/17/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">NATASHA L HANSERD-POE</TD>
+    <TD align="left" valign="top">043.117071</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3316744" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/18/2021</TD>
+    <TD align="left" valign="top">02/18/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">DARLENE U FOREMAN</TD>
+    <TD align="left" valign="top">043.107151</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2847556" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/19/2021</TD>
+    <TD align="left" valign="top">02/19/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JOCELYN D LEE</TD>
+    <TD align="left" valign="top">043.105233</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2343933" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/22/2021</TD>
+    <TD align="left" valign="top">02/22/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">ANITA M SHEEGOG</TD>
+    <TD align="left" valign="top">043.087468</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=71891" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/22/2021</TD>
+    <TD align="left" valign="top">02/22/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">CODY J CONNOR</TD>
+    <TD align="left" valign="top">043.122096</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3550874" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/22/2021</TD>
+    <TD align="left" valign="top">02/22/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">PATRICIA MARIE NEWMAN</TD>
+    <TD align="left" valign="top">043.116244</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3270676" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/23/2021</TD>
+    <TD align="left" valign="top">02/23/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">KATE B BARRIDO PALOMARES</TD>
+    <TD align="left" valign="top">043.111799</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3037052" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/23/2021</TD>
+    <TD align="left" valign="top">02/23/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">CASEY N NUTTER</TD>
+    <TD align="left" valign="top">043.089400</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=43018" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/23/2021</TD>
+    <TD align="left" valign="top">02/23/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">ERICA S FLETCHER</TD>
+    <TD align="left" valign="top">043.121544</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3511325" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/24/2021</TD>
+    <TD align="left" valign="top">02/24/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">LISA J CARLOCK</TD>
+    <TD align="left" valign="top">043.101441</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=553726" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">02/26/2021</TD>
+    <TD align="left" valign="top">02/26/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">FATIMO D ERINFOLAMI</TD>
+    <TD align="left" valign="top">043.121927</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3546301" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/01/2021</TD>
+    <TD align="left" valign="top">03/01/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">CATHLEEN R ERVIN</TD>
+    <TD align="left" valign="top">043.113975</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3141497" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/01/2021</TD>
+    <TD align="left" valign="top">03/01/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JERRICKA M GAINES</TD>
+    <TD align="left" valign="top">043.124093</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3619410" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/03/2021</TD>
+    <TD align="left" valign="top">03/03/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">MEGAN M MAZZEI</TD>
+    <TD align="left" valign="top">043.123507</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3578573" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/04/2021</TD>
+    <TD align="left" valign="top">03/04/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">MARY E OKEL</TD>
+    <TD align="left" valign="top">043.027933</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=58975" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/04/2021</TD>
+    <TD align="left" valign="top">03/04/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">MARCIA K HARRIS-DOHERTY</TD>
+    <TD align="left" valign="top">043.083548</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=32306" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/05/2021</TD>
+    <TD align="left" valign="top">03/05/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">MARILYN JUARBE</TD>
+    <TD align="left" valign="top">043.119941</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3382618" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/08/2021</TD>
+    <TD align="left" valign="top">03/08/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">BETSY I FRANKLIN</TD>
+    <TD align="left" valign="top">043.108185</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2916388" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/09/2021</TD>
+    <TD align="left" valign="top">03/09/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">NEIDA Y CORKRAN</TD>
+    <TD align="left" valign="top">043.111133</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3010746" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/12/2021</TD>
+    <TD align="left" valign="top">03/12/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">KARLA MOSSMAN</TD>
+    <TD align="left" valign="top">043.061239</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=37399" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/16/2021</TD>
+    <TD align="left" valign="top">03/16/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">DEANNA L READ</TD>
+    <TD align="left" valign="top">043.067696</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=64935" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/22/2021</TD>
+    <TD align="left" valign="top">03/22/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">BRENDA LEE SMITH</TD>
+    <TD align="left" valign="top">043.053484</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=73612" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/24/2021</TD>
+    <TD align="left" valign="top">03/24/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">SABRINA R VILANI</TD>
+    <TD align="left" valign="top">043.059606</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=82390" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/30/2021</TD>
+    <TD align="left" valign="top">03/30/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">KRYSTAL ANNETTE CAMACHO</TD>
+    <TD align="left" valign="top">043.120529</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3475902" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/30/2021</TD>
+    <TD align="left" valign="top">03/30/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">ASHLEY BEAULIEU</TD>
+    <TD align="left" valign="top">043.128269</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3911155" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/31/2021</TD>
+    <TD align="left" valign="top">03/31/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">FELICIA WINN</TD>
+    <TD align="left" valign="top">043.110626</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2998508" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">03/31/2021</TD>
+    <TD align="left" valign="top">03/31/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JANIS L SELGREN</TD>
+    <TD align="left" valign="top">043.058811</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=71296" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/01/2021</TD>
+    <TD align="left" valign="top">04/01/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">DIANE KENT JACOBS</TD>
+    <TD align="left" valign="top">043.064881</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=42285" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/02/2021</TD>
+    <TD align="left" valign="top">04/02/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">DORENE A BARTZ</TD>
+    <TD align="left" valign="top">043.089492</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=4286" target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/02/2021</TD>
+    <TD align="left" valign="top">04/02/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">PAMELA BROWN PIERCE</TD>
+    <TD align="left" valign="top">043.053264</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=81785" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/06/2021</TD>
+    <TD align="left" valign="top">04/06/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">APRIL ELAINE HALL</TD>
+    <TD align="left" valign="top">043.121310</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3520751" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/06/2021</TD>
+    <TD align="left" valign="top">04/06/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JESSICA R WILSON</TD>
+    <TD align="left" valign="top">043.114922</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3232346" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/06/2021</TD>
+    <TD align="left" valign="top">04/06/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">LEO P LAMERA</TD>
+    <TD align="left" valign="top">043.111135</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2998610" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/14/2021</TD>
+    <TD align="left" valign="top">04/14/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">TODD V FROMMER</TD>
+    <TD align="left" valign="top">043.120959</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3507197" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/15/2021</TD>
+    <TD align="left" valign="top">04/15/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">NICOLE J HELSLEY</TD>
+    <TD align="left" valign="top">043.106507</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2854573" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/19/2021</TD>
+    <TD align="left" valign="top">04/19/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">MALLORY S ANDERSON</TD>
+    <TD align="left" valign="top">043.106753</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2856021" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/26/2021</TD>
+    <TD align="left" valign="top">04/26/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">AUTUMN R GRISSOM</TD>
+    <TD align="left" valign="top">043.090171</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=63570" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/26/2021</TD>
+    <TD align="left" valign="top">04/26/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">KATHERINE C DAUM</TD>
+    <TD align="left" valign="top">043.128107</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3910456" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/26/2021</TD>
+    <TD align="left" valign="top">04/26/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">HUSNA JEELANI</TD>
+    <TD align="left" valign="top">043.127283</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3871218" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20210531</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">04/27/2021</TD>
+    <TD align="left" valign="top">04/27/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">Jannet Calvillo</TD>
+    <TD align="left" valign="top">043.127096</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3762349" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">05/05/2021</TD>
+    <TD align="left" valign="top">05/05/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">LANA LENTINE</TD>
+    <TD align="left" valign="top">043.117862</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3349252" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">05/05/2021</TD>
+    <TD align="left" valign="top">05/05/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">SEAN M GULLEY</TD>
+    <TD align="left" valign="top">043.081538</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=30435" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">05/11/2021</TD>
+    <TD align="left" valign="top">05/11/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">HALEY J DRESSLER-OSBORN</TD>
+    <TD align="left" valign="top">043.125916</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3795623" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">06/01/2021</TD>
+    <TD align="left" valign="top">06/01/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">RONDA K LAROSE</TD>
+    <TD align="left" valign="top">043.113694</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3131023" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">06/03/2021</TD>
+    <TD align="left" valign="top">06/03/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JANET ASHANA</TD>
+    <TD align="left" valign="top">043.055619</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2425" target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">06/03/2021</TD>
+    <TD align="left" valign="top">06/03/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">HANNAH MARIE DONOVAN</TD>
+    <TD align="left" valign="top">043.128060</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3902737" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">06/10/2021</TD>
+    <TD align="left" valign="top">06/10/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">NICOLE A CAMPBELL</TD>
+    <TD align="left" valign="top">043.104726</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2329049" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">06/25/2021</TD>
+    <TD align="left" valign="top">06/25/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">NANETTE MARIE GHORBANIAN</TD>
+    <TD align="left" valign="top">043.036856</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=27589" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">06/30/2021</TD>
+    <TD align="left" valign="top">06/30/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">TAMRIA S GOODWIN</TD>
+    <TD align="left" valign="top">043.120852</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3499632" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">06/30/2021</TD>
+    <TD align="left" valign="top">06/30/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">KIM JARAMILLA RIVERA</TD>
+    <TD align="left" valign="top">043.113912</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3098288" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">07/06/2021</TD>
+    <TD align="left" valign="top">07/06/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">VICKI ELSBURY</TD>
+    <TD align="left" valign="top">043.042694</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=22567" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">07/07/2021</TD>
+    <TD align="left" valign="top">07/07/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">ALICE WRIGHT</TD>
+    <TD align="left" valign="top">043.030398</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=88652" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">07/16/2021</TD>
+    <TD align="left" valign="top">07/16/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">TAMARA SCOTT</TD>
+    <TD align="left" valign="top">043.117956</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3337608" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">07/23/2021</TD>
+    <TD align="left" valign="top">07/23/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">NICOLE L MANLEY</TD>
+    <TD align="left" valign="top">043.114476</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3174223" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">07/29/2021</TD>
+    <TD align="left" valign="top">07/29/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">SHAYNELLA S WILLIAMS</TD>
+    <TD align="left" valign="top">043.112927</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3083685" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">08/02/2021</TD>
+    <TD align="left" valign="top">08/02/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">DIANA MARIE DENTON</TD>
+    <TD align="left" valign="top">043.080756</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=19276" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">08/02/2021</TD>
+    <TD align="left" valign="top">08/02/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">RAINA JEANNINE NELSON</TD>
+    <TD align="left" valign="top">043.104003</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=2316074" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">08/03/2021</TD>
+    <TD align="left" valign="top">08/03/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">GAYLE ANN MASTRIANNO</TD>
+    <TD align="left" valign="top">043.052128</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=50478" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">08/09/2021</TD>
+    <TD align="left" valign="top">08/09/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">ROBERTINA R ROBINSON</TD>
+    <TD align="left" valign="top">043.081447</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=67255" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">08/11/2021</TD>
+    <TD align="left" valign="top">08/11/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">KRISTINA R FLOYD-SCHAEFER</TD>
+    <TD align="left" valign="top">043.122735</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3601346" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20230131</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">08/17/2021</TD>
+    <TD align="left" valign="top">08/17/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">STACY L CHASTAIN</TD>
+    <TD align="left" valign="top">043.120280</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3464570" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">08/18/2021</TD>
+    <TD align="left" valign="top">08/18/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">OLUWAFEMI M AWOYEMI</TD>
+    <TD align="left" valign="top">043.120926</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3494823" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">08/18/2021</TD>
+    <TD align="left" valign="top">08/18/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">Krista Michelle White</TD>
+    <TD align="left" valign="top">043.128166</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=3911804" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">08/24/2021</TD>
+    <TD align="left" valign="top">08/24/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">JOLIE A YEAGER</TD>
+    <TD align="left" valign="top">043.080033</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=47966" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">09/07/2021</TD>
+    <TD align="left" valign="top">09/07/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">TAMELA JACKSON FREEMAN</TD>
+    <TD align="left" valign="top">043.089950</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=25841" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">09/09/2021</TD>
+    <TD align="left" valign="top">09/09/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">LICENSED PRACTICAL NURSE</TD>
+    <TD align="left" valign="top">COVID19</TD>
+    <TD align="left" valign="top">ERIC N HEWITT</TD>
+    <TD align="left" valign="top">043.090122</TD>
+    <TD align="left" valign="top"><A href="credView.asp?credidnt=34584" 
+      target="main"><U>Credential</U></A></TD>
+    <TD align="left" valign="top">20211231</TD>
+    <TD align="left" valign="top">ACTIVE</TD>
+    <TD align="left" valign="top">09/16/2021</TD>
+    <TD align="left" valign="top">09/16/2021</TD>
+    <TD align="left" valign="top">APPROVED/COMPLETED</TD></TR>
+  <TR class="Totals">
+    <TD align="Left" colspan="10">&nbsp;<BR><B>222 Items 
+  Found</B></TD></TR></TBODY></TABLE></B></BODY></HTML>

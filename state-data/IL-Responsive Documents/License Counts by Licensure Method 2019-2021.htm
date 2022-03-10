@@ -1,0 +1,1018 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD><META content="IE=5.0000" http-equiv="X-UA-Compatible">
+
+<SCRIPT language="JavaScript">
+<!--
+var downStrokeField = null;
+
+document.onkeydown = onEnterKey; 
+function onEnterKey(event) { 
+	var ev = event || window.event;
+	if (ev && ev.keyCode == 13 ) {
+		var eSrc = ev.srcElement || ev.target;
+		var strTextName = eSrc.name ; 
+		if (document.all(strTextName).onblur) 
+			document.all(strTextName).onblur() ;
+	}
+}
+
+
+
+//---------------------- Auto Tab Script
+function autojump(fieldName,nextFieldName,fakeMaxLength) {
+	// 5/4/07	JeffS - Added checks after each step to make sure not raising error
+	var myForm=document.forms[document.forms.length - 1];
+	
+	if (myForm) {
+		var myField=myForm.elements[fieldName];
+
+		if (myField) {
+			myField.nextField=myForm.elements[nextFieldName];
+
+			if (myField.nextField) {
+				if (myField.maxLength == null)
+				   myField.maxLength=fakeMaxLength;
+
+				myField.onkeydown=autojump_keyDown;
+				myField.onkeyup=autojump_keyUp;
+			}
+		}
+	}
+}
+
+function autojump_keyDown() {
+	this.beforeLength=this.value.length;
+	downStrokeField=this;
+}
+
+function autojump_keyUp() {
+	if (
+	   (this == downStrokeField) && 
+	   (this.value.length > this.beforeLength) && 
+	   (this.value.length >= this.maxLength)
+	   )
+	   this.nextField.focus();
+	downStrokeField=null;
+}
+//------------ End Auto Tab Script
+
+
+
+//Javascript Declaration of constants.  Also done above for ASP
+var GC_REQUIRED_TRUE	 = 10		//required
+var GC_REQUIRED_FALSE	 = 0		//optional
+var GC_REQUIRED_TRUE_MAX = 11		//must have max# of chars, entered
+
+var GC_REFORMAT_YES = 1		//YES
+var GC_REFORMAT_NO  = 0		//NO
+
+var GC_VALIDATION_STRING =  0				//string
+var GC_VALIDATION_ALPHA_STRING =  1			//alpha only string
+var GC_VALIDATION_UPPER_ALPHA_STRING =  2	//upper case alpha only string (convert lower case to upper)
+var GC_VALIDATION_LOWER_ALPHA_STRING =  3	//lower case alpha only string (convert upper case to lower)
+var GC_VALIDATION_UPPER_STRING =  4			//upper case alpha num string (convert lower case to upper)
+var GC_VALIDATION_LOWER_STRING =  5			//lower case alpha num string (convert upper case to lower)
+var GC_VALIDATION_NUMERIC =  6				//numeric only text field
+var GC_VALIDATION_ALPHANUM_INIT_CAP =  8	//AlphaNum, make 1st char uppercase (only if no other upper case)
+var GC_VALIDATION_INTEGER = 10				//integer  -9999
+var GC_VALIDATION_INTEGER_COMMA = 11		//integer  -9,999
+var GC_VALIDATION_REAL = 20					//real     -9999.99999
+var GC_VALIDATION_REAL_COMMA = 21			//real    -9,999.99999
+var GC_VALIDATION_CURRENCY = 30				//dollar.cents  -dddd.cc
+var GC_VALIDATION_CURRENCY_COMMA = 31		//dollar.cents -d,ddd.cc
+var GC_VALIDATION_PERCENT_0 = 40  			//percent   99
+var GC_VALIDATION_PERCENT_1 = 41  			//percent   99.9
+var GC_VALIDATION_PERCENT_2 = 42  			//percent   99.99
+var GC_VALIDATION_PERCENT_3 = 43  			//percent   99.999
+var GC_VALIDATION_PERCENT_4 = 44  			//percent   99.9999
+var GC_VALIDATION_PERCENT_5 = 45  			//percent   99.99999
+var GC_VALIDATION_PERCENT_6 = 46  			//percent   99.999999
+var GC_VALIDATION_PERCENT_7 = 47  			//percent   99.9999999
+var GC_VALIDATION_PERCENT_8 = 48  			//percent   99.99999999
+var GC_VALIDATION_PERCENT_9 = 49  			//percent   99.999999999
+var GC_VALIDATION_PHONE = 50				//phone number, 10 digit US format, allow allow x
+var GC_VALIDATION_ZIP = 51					//zip code  99999 or 99999-9999
+var GC_VALIDATION_SSN = 53					//SSN
+var GC_VALIDATION_EMAIL = 54				//Email
+var GC_VALIDATION_FEIN  = 55				//FEIN Number
+var GC_VALIDATION_ABS_FUTURE_DATE = 60		//absolute future date:  Todays and future dates
+var GC_VALIDATION_REL_FUTURE_DATE = 61		//relative future date: dates from the previous year and forward
+var GC_VALIDATION_ABS_PAST_DATE = 62		//absolute past date from the current day and before
+var GC_VALIDATION_DATE_50YRS = 63			//dates 50 years before or 50 years after current year
+var GC_VALIDATION_LAST_NUMERICFIELD = 70	//some case use "> 9 and < 70" to Set Field Size and Max Length For Numeric Fields 
+var GC_VALIDATION_SELECT_BOX = 99			//Select Box
+
+//'T3834 15JUN2004 TM...
+var GC_VALIDATION_ILDPR_GLN  = 80			//Valid GLN number for ILDPR 9999-9999-9999-9999
+var GC_MAXSIZE_ILDPR_GLN     = 19			//MAX NUMBER OF CHARS GLN number for ILDPR 9999-9999-9999-9999
+
+// TABLE: SCREENSQLTYPE
+var GC_SCREENSQLTYPE_RAW_TEXTBOX			= 0		//sql number (raw) input (does not put any tic's around the data)
+var GC_SCREENSQLTYPE_CHARTEXT_TEXTBOX		= 1		//sql char text box (one line text field on screen)
+var GC_SCREENSQLTYPE_CHARNBR_TEXTBOX		= 2		//sql char number (text field)
+var GC_SCREENSQLTYPE_SQLNBR_TEXTBOX			= 3		//sql number (sql numeric field)
+var GC_SCREENSQLTYPE_CHARDATE_TEXTBOX		= 4		//sql char date convert from mm/dd/yyyy to yyyymmdd order
+var GC_SCREENSQLTYPE_TELEPHONE_TEXTBOX		= 5		//sql char phone number (will reformat #s into US layout if 7 or 10 chars with no spaces or special chars)
+var GC_SCREENSQLTYPE_NUMBER_SELECTBOX		= 6		//sql number select box
+var GC_SCREENSQLTYPE_CHAR_SELECTBOX			= 7		//sql char select box
+var GC_SCREENSQLTYPE_CHARTEXT_TEXTFIELD		= 8		//sql char textfield
+var GC_SCREENSQLTYPE_SQLDOLLAR_TEXTBOX		= 9		//sql real dollar amount (shows 2 decimals and shows/removes commas)
+var GC_SCREENSQLTYPE_SQLINTEGER_TEXTBOX		= 10	//sql integer number (shows and removes commas)
+var GC_SCREENSQLTYPE_DISPLAYONLY_TEXTBOX	= 11	//dislays only does not allow updating
+var GC_SCREENSQLTYPE_NUMBER_CHECKBOX		= 12	//yes/no box for numeric field 0-no
+var GC_SCREENSQLTYPE_HIDDEN_TEXTBOX			= 13	//Hidden field
+var GC_SCREENSQLTYPE_PASSWORD_TEXTBOX		= 14	//password text
+var GC_SCREENSQLTYPE_CHAR_CHECKBOX			= 15	//yes/no box for char field N-no
+var GC_SCREENSQLTYPE_UPLOAD_FILEINPUT		= 16	//specifies a form input control for an File Upload
+
+//'T3834 15JUN2004 TM...
+var GC_SCREENSQLTYPE_ILDPR_GLN_TEXTBOX		= 17	//sql varchar "ILDPR" GLN number (will reformat #s into 9999-9999-9999-9999)
+
+/*File Upload Types...
+	Used with "FileUpload.asp"...
+	provides a Modal Dialog for a user to UPLOAD a file "location\name"
+	when the Dialog page closes, the file's "location\name" is inserted into
+	a text field on the web page that opened the Modal Dialog "FileUpload.asp"...
+*/
+var GC_UPLOAD_FILETYPE_SIGNATURE = "SIGN"
+
+
+// window.opener.opener.parent.function() - if in popup opened by a popup opened by main window
+// window.opener.parent.function() - if in popup opened by main window
+// parent.function() - if in main window
+
+var topwindow = null;
+topwindow = getTopWindow();
+
+//alert('name: ' + topwindow.name + '\nlocation: ' + topwindow.location.href + '\n  topwindow')
+
+function getTopWindow() {
+	try {
+		// added try-catch because if in a popup(2) of a popup(1), and popup(1) closed, and popup(2) does a page change, an ugly error msg was displayed
+		if ((window.opener) && (window.opener.opener) && (window.opener.opener.parent) && (window.opener.opener.parent.TopWindowPlaceholderFunction)) {
+			return window.opener.opener.parent;
+		} else if ((window.opener) && (window.opener.parent) && (window.opener.parent.TopWindowPlaceholderFunction)) {
+			return window.opener.parent;
+		} else if ((window.parent) && (window.parent.TopWindowPlaceholderFunction)) {
+			return window.parent;
+		} else {
+			return null;
+		}
+	}
+	catch(e) {
+		return null;
+	}
+}
+
+function SV2(name, label, ftype,  fManditory, fMin, fMax, fRefresh) {
+	if (topwindow != null)
+		topwindow.xSV2(name, label, ftype,  fManditory, fMin, fMax, fRefresh);
+}
+
+function SM(name, msg) {
+	if (topwindow != null)
+		topwindow.xSM(name, msg);
+}
+
+function SetFieldManditoryFlag(Field, Options) {
+	if (topwindow != null)
+		topwindow.xSetFieldManditoryFlag(Field, Options);
+}
+
+function SetFormatType(Field,Options) {
+	if (topwindow != null)
+		topwindow.xSetFormatType(Field, Options); 
+}
+
+function CheckForm(iform)  {
+	if (topwindow != null)
+		return topwindow.CheckForm(iform);
+}
+
+function WriteHelpMsg(msg) {
+	if (topwindow != null)
+		topwindow.WriteHelpMsg(msg);
+}
+
+function Trim(inString)
+{
+  //Utility to trim leading and trailing spaces
+  var retVal = "";
+  var start = 0;
+  while ((start < inString.length) && (inString.charAt(start) == ' '))
+  {
+    ++start;
+  }
+
+  var end = inString.length;
+  while ((end > 0) && (inString.charAt(end - 1) == ' '))
+  {
+    --end;
+  }
+
+  retVal = inString.substring(start, end);
+  return retVal;
+}
+
+
+function anyChecked()
+{
+	//Determines if any select boxes or check boxes are checked
+	var way = false;
+	var max = document.iform.elements.length-1;
+	for (var i = 0; i< max; ++i)
+	{
+		 if (document.iform.elements[i].checked == true)
+		 {
+		 	way = true;
+		 	break;
+		 }
+	}
+	return way;
+}
+
+// --></SCRIPT>
+  
+<META http-equiv="Content-Type" 
+content="text/html; charset=windows-1252"><TITLE>License Counts (First 
+Effective) by Licensure Method</TITLE> <!-- Version Control Comments --> <!-- $Workfile: rptUserReportsExecute.asp $ --> <!-- $Revision: 14 $ --> <!-- $Date: 12/09/11 1:28a $ --> <!-- Do Not Edit --> 
+
+<STYLE>
+
+/*=====================================================================*/
+/*                         IMPORTANT NOTE !                            */
+/*                                                                     */
+/*  - Make sure this is included BEFORE the color_scheme.css file      */
+/*  - If included after this css, then they will override these colors */
+/*                                                                     */
+/*=====================================================================*/
+
+body {
+    padding: 5px;
+    font-family: Arial,Verdana,Helvetica;
+    font-weight: normal;
+    font-size: 11px;
+    overflow: scroll;
+    color: #000000;
+    background-color: #f0f0f0;
+}
+
+
+font {
+    font-weight: normal;
+    font-size: 11px;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+
+a, a:link, a:active, a:visited, a:hover {
+    color: #0000bf;
+    font-weight: bold;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: Arial, Verdana, Helvetica;
+    text-decoration: none;
+}
+
+/* Taken out for ILDPR
+a:hover	{color:#00ff33;}
+*/
+table {
+    font-family: Arial,Verdana,Helvetica;
+}
+
+td {
+    font-size: 11px;
+    font-family: Arial,Verdana,Helvetica;
+}
+
+th {
+    padding-left: 1px;
+    font-weight: bold;
+    font-size: 15px;
+    font-family: Arial, Verdana, Helvetica;
+    text-align: left;
+    color: #000000;
+    background-color: #6699ff;
+}
+
+h1 {
+    font-size: 24px;
+    font-family: Arial,Verdana,Helvetica;
+}
+
+img {
+    cursor: pointer;
+}
+
+select {
+    font-weight: normal;
+    font-size: 11px;
+    color: #000000;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+input {
+    font-size: 11px;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+
+/*---------------------------*/
+/*      CUSTOM CLASSES       */
+/*---------------------------*/
+
+.Border {
+    border: #000000 thin solid;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+
+.subheader {
+    font-weight: bold;
+    color: #000000;
+    background-color: #99ccff;
+}
+
+.IndentCell {
+    padding-left: 5px;
+    font-size: 11px;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.ColHeader {
+    font-weight: bold;
+    font-size: 13px;
+    text-align: center;
+    color: #000000;
+    background-color: #99ccff;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.Button {
+    left: 0px;
+    width: 125px;
+    cursor: pointer;
+    top: 1px;
+    text-decoration: none;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.Error {
+    font-weight: bold;
+    font-size: 15px;
+    color: #ff0000;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.Warning {
+    font-weight: bold;
+    font-size: 13px;
+    color: #ffd700;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.LeftLine {
+    padding-left: 5px;
+    font-size: 11px;
+    border-left: #000000 thin solid;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.Alert {
+    font-weight: bold;
+    font-size: 11px;
+    color: #ff0000;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.Normal, a.Normal {
+    font-weight: normal;
+    font-size: 11px;
+    cursor: pointer;
+    text-decoration: none;
+    color: #0000bf;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.Bold, a.Bold {
+    font-weight: bold;
+    font-size: 11px;
+    cursor: pointer;
+    text-decoration: none;
+    color: #0000bf;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.copyright {
+    font-weight: normal;
+    font-size: 10px;
+    text-decoration: none;
+    font-family: Helvetica, Verdana, Arial;
+}
+
+.MainHeader {
+    font-weight: bold;
+    font-size: 15px;
+    font-family: Arial, Verdana, Helvetica;
+    color: #000000;
+    background-color: #6699FF;
+}
+
+.BoldRed {
+    font-weight: bold;
+    font-size: 9pt;
+    cursor: pointer;
+    color: red;
+    font-family: Arial, Verdana, Helvetica;
+    text-decoration: none;
+}
+
+.mailBlock {
+    border: thin;
+    border-style: groove;
+    padding: 3px;
+    margin-right: 8px;
+}
+
+.SubHeaderLink {
+    background-color: #99ccff;
+    border: medium none;
+    padding-left: 3px;
+    font-weight: bold;
+    font-size: 13px;
+    color: #0000bf;
+    font-family: Arial, Verdana, Helvetica;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.titleBar {
+    border: 1px outset;
+    padding: 2px;
+    background-color: #CCCCCC;
+    color: #000000;
+    font-family: Arial, Verdana, Helvetica;
+    font-size: 11px;
+    font-weight: bold;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/*----- tab related -----*/
+.tab {
+    position: relative;
+    padding: 2px 6px 2px 6px;
+    margin: 0 -2px 0 0;
+    border: thin groove;
+    text-align: left;
+    font-family: Arial, Helvetica, Verdana, Sans-Serif;
+    font-size: 8pt;
+    font-weight: bold;
+    background-color: #DCDCDC;
+    color: #000000;
+    cursor: pointer;
+    white-space: nowrap;
+    z-index: 100;
+}
+
+.tabActive {
+    border-bottom: none;
+    padding-bottom: 4px;
+    color: #000000;
+    background-color: #99CCFF;
+    z-index: 1000;
+}
+
+.tabActiveGreen {
+    border-bottom: none;
+    padding-bottom: 4px;
+    color: #000000;
+    background-color: #99CC99;
+    z-index: 1000;
+}
+
+.tabRow {
+    position: relative;
+    padding-left: 5px;
+    padding-bottom: 1px;
+    z-index: 1000;
+}
+
+.tabBackRow {
+    margin-left: +8px;
+    padding-bottom: 5px;
+}
+
+.tabContentContainer {
+    position: relative;
+    width: 100%;
+    min-height: 150px;
+    display: block;
+    margin: 1px 0 0 0;
+    border: thin groove;
+    padding: 5px;
+    background-color: #99CCFF;
+    z-index: 500;
+}
+
+.tabContentContainerGreen {
+    position: relative;
+    width: 100%;
+    min-height: 150px;
+    display: block;
+    margin: 1px 0 0 0;
+    border: thin groove;
+    padding: 5px;
+    background-color: #99CC99;
+    z-index: 500;
+}
+
+.tabContent {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: none;
+    /* margin: 1px 0 0 0; */
+    border: none;
+    background-color: #F0F0F0; /* same color as body */
+    padding: 0;
+    z-index: 400;
+}
+
+.tabContentTitle {
+    border-bottom: thin solid black;
+    padding-bottom: 2px;
+    padding-left: 2px;
+    background-color: #99CCFF;
+    font-family: Arial, Verdana, Helvetica;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.tabContentTitleGreen {
+    border-bottom: thin solid black;
+    padding-bottom: 2px;
+    padding-left: 2px;
+    background-color: #99CC99;
+    font-family: Arial, Verdana, Helvetica;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+
+
+
+/*--- end of tab related ---*/
+
+.rptWizardHeader {
+    padding-left: 1px;
+    font-weight: bold;
+    font-size: 16px;
+    color: #000000;
+    font-family: Arial, Verdana, Helvetica;
+    text-align: left;
+    background-color: #D3D3D3;
+}
+
+
+/*--- related to view pane links ---*/
+
+.paneLink, .linkHover {
+    font-size: 8pt;
+    font-weight: normal;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.paneLink {
+    color: #0000BF;
+}
+/* same color A:link */
+.linkHover {
+    color: #00FF33;
+}
+/* same color A:hover */
+
+/*--- end of view pane links ---*/
+
+
+.back {
+    color: #FFFFFF;
+}
+
+.Blue {
+    color: #0000FF;
+}
+
+.boxIn {
+    border-style: inset;
+    border-width: thin;
+}
+
+.boxOut {
+    border-style: outset;
+    border-width: thin;
+}
+
+.btnADD {
+    color: #006633;
+}
+
+.btnDEL {
+    color: #FF0000;
+}
+
+.btnUPD {
+    color: #0000FF;
+}
+
+.clear {
+    color: #FFFBF0;
+    background-color: transparent;
+}
+
+.error {
+    color: #FF0000;
+}
+
+.fatalError {
+    color: #FF0000;
+}
+
+.grid {
+    border-style: solid;
+    border-width: thin;
+    border-color: #000000;
+}
+
+.groove {
+    border-style: groove;
+    border-width: thin;
+}
+
+.headerLeft {
+    color: #000000;
+    background-color: #99CC99;
+}
+
+.headerRight {
+    color: #000000;
+    background-color: #99CC99;
+}
+
+.hide {
+    display: none;
+}
+
+.Hidden {
+    display: none;
+    visibility: hidden;
+}
+
+.hilite {
+    background-color: #FFFF99;
+}
+/* lite yellow */
+.indentCell {
+    padding-left: 5px;
+}
+
+.insetCell {
+    border-style: inset;
+    border-width: thin;
+}
+
+.instructions {
+    color: #000099;
+}
+
+.Invisible {
+    visibility: hidden;
+}
+
+.legacyData {
+    color: #990000;
+}
+
+.lineTop {
+    border-top: thin solid #000000;
+}
+
+.lineBottom {
+    border-bottom: thin solid #000000;
+}
+
+.lineLeft {
+    border-left: thin solid #000000;
+}
+
+.lineRight {
+    border-right: thin solid #000000;
+}
+
+.noline {
+    text-decoration: none;
+}
+
+.noRecords {
+    font-weight: bold;
+    background-color: #FFFF99;
+}
+
+.noticeMe {
+    color: #990000;
+}
+
+.outsetCell {
+    border-style: outset;
+    border-width: thin;
+}
+
+.padTOPBTM2 {
+    padding-bottom: 2px;
+    padding-top: 2px;
+}
+
+.padTOPBTM4 {
+    padding-bottom: 4px;
+    padding-top: 4px;
+}
+
+.pageHREF {
+    color: #FFFFCC;
+}
+
+.pageTitle {
+    color: #000000;
+    background-color: #6699FF;
+}
+
+.Red {
+    COLOR: #FF0000;
+}
+
+.RowHiLite {
+    background-color: #E0E0E0;
+}
+/* lite gray */
+.section {
+    color: #000000;
+    background-color: #6699FF;
+}
+
+.selectRow {
+    background-color: #FFFFCC;
+}
+
+.show {
+    display: block;
+}
+
+.Shown {
+    font-weight: normal;
+    font-size: 11px;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.subHeader {
+    font-weight: bold;
+    color: #000000;
+    background-color: #99CCFF;
+}
+
+.subSection {
+    font-weight: bold;
+    color: #000000;
+    background-color: #6699FF;
+}
+
+.subTitle {
+    font-weight: bold;
+    color: #000000;
+    background-color: #99CCFF;
+}
+
+.tblHeader {
+    font-weight: bold;
+    color: #000000;
+    background-color: #99CCFF;
+}
+
+.warning {
+    color: #FF0000;
+}
+
+.warningMsg {
+    color: #FF0000;
+}
+
+/*===========Start UtilMuliSearch Related=========================================*/
+/*
+		TD {white-space: nowrap;}
+*/
+.clsPrefix {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 60px;
+    height: 21px;
+}
+
+input.clsPrefix {
+    background-color: transparent;
+}
+
+span.clsPrefix {
+    text-align: right;
+    font: bolder 7pt Arial;
+    background-color: white;
+    color: #B3B3B3;
+    letter-spacing: 1px;
+    padding-right: 4px;
+}
+
+
+span.clsContainer {
+    padding-bottom: 5px
+}
+
+.clsNumber {
+    position: absolute;
+    top: 0px;
+    left: 65px;
+    width: 60px;
+    height: 21px;
+}
+
+input.clsNumber {
+    background-color: transparent;
+}
+
+span.clsNumber {
+    text-align: right;
+    font: bolder 7pt Arial;
+    background-color: white;
+    color: #B3B3B3;
+    letter-spacing: 1px;
+    padding-right: 4px;
+}
+
+.clsSubCat {
+    position: absolute;
+    top: 0px;
+    left: 130px;
+    width: 80px;
+    height: 21px;
+}
+
+input.clsSubCat {
+    background-color: transparent;
+}
+
+span.clsSubCat {
+    text-align: right;
+    font: bolder 7pt Arial;
+    background-color: white;
+    color: #B3B3B3;
+    letter-spacing: 1px;
+    padding-right: 4px;
+}
+
+.thclass11px, .thClass11px {
+    background-color: #99ccff;
+    border-bottom: black 1px solid;
+    padding-left: 3px;
+    font-weight: bold;
+    font-size: 11px;
+    font-family: Arial, Verdana, Helvetica;
+}
+
+.NoWrap {
+    white-space: nowrap;
+}
+
+textarea {
+    white-space: pre-wrap;
+    tab-size: 4;
+    -moz-tab-size: 4;
+    -o-tab-size: 4;
+}
+
+
+
+/* CodeMirror settings for autoresize http://codemirror.net/demo/resize.html */
+.CodeMirror {
+    border: 1px solid #eee;
+    height: auto;
+    margin-bottom: .5em;
+}
+
+.CodeMirror-scroll {
+    overflow-y: hidden;
+    overflow-x: auto;
+}
+
+
+/* SyntaxHighlighter */
+.codeblock > div > div {
+    border: 1px solid #aaa;
+}
+
+.codeblock .toolbar {
+    display: none;
+}
+
+.codeblock .syntaxhighlighter {
+    margin: .1em 0 .1em 0 !important;
+}
+
+
+	.ReportHeader
+		{
+		PADDING-LEFT: 1px;
+		FONT-WEIGHT: bold;
+		FONT-SIZE: 11px;
+		COLOR: #000000;
+		FONT-FAMILY: Arial, Verdana, Helvetica;
+		TEXT-ALIGN: left;
+		BACKGROUND-COLOR:#ccffff;
+		}
+</STYLE>
+ </HEAD> 
+<BODY onload="window.focus()"><SPAN class="hidden" id="searchMsg">
+<P><B>Searching Database.&nbsp;&nbsp;Please Wait...</B></P></SPAN><B>		 
+<SCRIPT language="JavaScript"><!--
+	
+		document.all['searchMsg'].className="hidden";
+
+		// --></SCRIPT>
+		 
+<TABLE width="600" id="ActiveTable" bordercolorlight="#c0c0c0" bordercolordark="#c0c0c0" 
+style="behavior: url(includes/tableAct.htc);" border="1" cellspacing="0" 
+cellpadding="2" hlcolor="#BEC5DE" slcolor="#ffffcc" dragcolor="gray">
+  <THEAD>
+  <TR>
+    <TD class="ReportHeader" colspan="4"><BIG>License Counts (First Effective) 
+      by Licensure Method</BIG><BR><BR><U><I>Filtered By</I></U><BR>
+      <LI>Board = NURSING BOARD<BR>
+      <LI>01/01/2019 to 10/06/2021<BR><BR><I><SMALL>10/6/2021 at 2:01:59 
+      PM</SMALL></I>&nbsp;</LI></TD></TR>
+  <TR class="SamePage" bgcolor="#99ccff">
+    <TD class="SubHeader">BOARD</TD>
+    <TD class="SubHeader">PROFESSION</TD>
+    <TD class="SubHeader">LICENSURE METHOD</TD>
+    <TD class="SubHeader">COUNT</TD></TR></THEAD>
+  <TBODY>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">NURSING BOARD</TD>
+    <TD align="left" valign="top">NURSE-LPN</TD>
+    <TD align="left" valign="top">Endorsement</TD>
+    <TD align="right" valign="top">871</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">NURSING BOARD</TD>
+    <TD align="left" valign="top">NURSE-LPN</TD>
+    <TD align="left" valign="top">ACCEPT EXAM</TD>
+    <TD align="right" valign="top">1</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">NURSING BOARD</TD>
+    <TD align="left" valign="top">NURSE-LPN</TD>
+    <TD align="left" valign="top">LIC BY EXAM</TD>
+    <TD align="right" valign="top">3574</TD></TR>
+  <TR class="Totals">
+    <TD align="Right" colspan="3"><B> Profession Totals </B></TD>
+    <TD align="right">4446</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">NURSING BOARD</TD>
+    <TD align="left" valign="top">NURSE-RN</TD>
+    <TD align="left" valign="top">NON-EXAM</TD>
+    <TD align="right" valign="top">6</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">NURSING BOARD</TD>
+    <TD align="left" valign="top">NURSE-RN</TD>
+    <TD align="left" valign="top">ENDORSEMENT</TD>
+    <TD align="right" valign="top">17262</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">NURSING BOARD</TD>
+    <TD align="left" valign="top">NURSE-RN</TD>
+    <TD align="left" valign="top">GRANDFATHER</TD>
+    <TD align="right" valign="top">1</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">NURSING BOARD</TD>
+    <TD align="left" valign="top">NURSE-RN</TD>
+    <TD align="left" valign="top">ACCEPT EXAM</TD>
+    <TD align="right" valign="top">185</TD></TR>
+  <TR class="IndentCell">
+    <TD align="left" valign="top">NURSING BOARD</TD>
+    <TD align="left" valign="top">NURSE-RN</TD>
+    <TD align="left" valign="top">LIC BY EXAM</TD>
+    <TD align="right" valign="top">25643</TD></TR>
+  <TR class="Totals">
+    <TD align="Right" colspan="3"><B> Profession Totals </B></TD>
+    <TD align="right">43097</TD></TR>
+  <TR class="TotalsSub">
+    <TD align="Right" colspan="3"><B> Board Totals</B></TD>
+    <TD align="right">47543</TD></TR>
+  <TR class="TotalsGrand">
+    <TD align="Right" colspan="3"><B>Grand Totals</B></TD>
+    <TD align="right">47543</TD></TR></TBODY></TABLE></B></BODY></HTML>
