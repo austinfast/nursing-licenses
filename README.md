@@ -8,6 +8,8 @@ Two member station reporters produced localized versions and participated in a [
 * [Jayme Lozano - Texas Tech Public Media (Lubbock, Texas)](https://radio.kttz.org/news/2022-03-08/data-shows-nurses-may-face-above-average-processing-times-for-licenses-in-texas)
 * [Brett Sholtis - WITF (Harrisburg, Pa.)](https://urldefense.com/v3/__https://www.witf.org/2022/03/10/nurses-in-pennsylvania-waited-months-to-get-licenses-to-work-during-historic-staffing-shortage/__;!!Iwwt!CynyfQoW6lmpSOB3yyliU9pazriGPwxigcsXmj9ZnJWW0J-33zzjONglotE$)
 
+* GitHub Page displaying code & data visualization: https://austinfast.github.io/nursing-licenses/
+
 # Methodology
 On Sept. 23, 2021, NPR requested records for all licensed practical nurses and registered nurses who applied for licensure from 2019 to 2021 from 54 nursing boards, including every state and the District of Columbia. (California, Louisiana and West Virginia have separate RN and LPN boards.)
 
