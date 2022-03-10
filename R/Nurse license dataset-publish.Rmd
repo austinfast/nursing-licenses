@@ -3,14 +3,12 @@ title: "Nurse licensing dataset-32 states"
 author: "Austin Fast, NPR Investigations"
 date: "03/10/2022"
 output: 
-  md_document:
-    variant: "markdown_github"
-#  html_document:
-#    code_folding:  show
+  html_document:
+    code_folding:  show
     toc: true
     toc_depth: 2
-#    toc_float: true
-#    theme: united
+    toc_float: true
+    theme: united
 ---
 
 ```{r, message=FALSE}
@@ -41,7 +39,7 @@ Two member station reporters produced localized versions and participated in a [
 * Brett Sholtis - WITF (Harrisburg, Pa.)
 
 # Methodology
-On Sept. 23, 2021, NPR requested records for all licensed practical nurses and registered nurses who applied for licensure from 2019 to 2021 from 54 nursing boards in every state (California, Louisiana and West Virginia have separate RN and LPN boards) and the District of Columbia.
+On Sept. 23, 2021, NPR requested records for all licensed practical nurses and registered nurses who applied for licensure from 2019 to 2021 from 54 nursing boards, including every state and the District of Columbia. (California, Louisiana and West Virginia have separate RN and LPN boards.)
 
 We asked for each nurse's:
 
