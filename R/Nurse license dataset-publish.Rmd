@@ -1,5 +1,5 @@
 ---
-title: "Nurse licensing dataset-32 states"
+title: "How long does it take to license nurses?"
 author: "Austin Fast, NPR Investigations, afast@npr.org"
 date: "March 10, 2022"
 output: 
@@ -23,13 +23,13 @@ knitr::opts_chunk$set(warning = FALSE, message=FALSE)
 #knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 
 start_time <- Sys.time()
-#Set working directory to find data files in console to knit
+#Set working directory in console to find data files to knit
 setwd('/Users/austinfast/Documents/GitHub/nursing-licenses/R/')
 ```
 
 # README
 
-This document details NPR's methodology for an investigation that aired March 9, 2022, on All Things Considered. 
+This document details NPR's methodology for an investigation that aired March 9, 2022, on All Things Considered. Using data from 32 states, we found almost 1 in 10 nurses waited at least six months to get licensed in 2021, and 35% waited at least three months. 
 
 * NPR.org: ["Nurses are waiting months for licenses as hospital staffing shortages spread"](https://www.npr.org/2022/03/10/1084897499/nurses-are-waiting-months-for-licenses-as-hospital-staffing-shortages-spread)
 
@@ -254,7 +254,7 @@ issued <- vns %>%
 vns2 <- vns %>%
   mutate (retest = if_else (entity_number %in% retakes, "retest", NA_character_),
           interim = if_else (entity_number %in% interim, "interim", NA_character_),
-          deficient = if_else (entity_number %in% deficiencies, "deficient", NA_character_),
+          deficient = if_else (entity_number %in% deficiencies, "deficient", "complete"),
           licensed = if_else (entity_number %in% issued, "licensed", NA_character_))
 
 #Remove exam re-takes as well as abandoned applications (expired); duplicate entries (withdrawn); expired applications (cancelled); and denied
@@ -359,7 +359,7 @@ vns8 %>% ungroup() %>% count (year, app_type)
 #Remove NA times and adjust year to pending for those still open
 vns9 <- vns8 %>%
   filter (process_time > -1) %>% #remove 3928 NA times
-  mutate (year = if_else (is.na(year), "Pending", as.character(year))) %>%  
+  mutate (year = if_else (is.na(year), "Pending as of 01/04/22", as.character(year))) %>%  
   #Remove pending older than July 2020
   filter (!(str_detect(year, "^Pending") & (received < as.Date("2020-07-01"))))
 
@@ -466,7 +466,7 @@ issued <- rns %>%
 rns2 <- rns %>%
   mutate (retest = if_else (entity_number %in% retakes, "retest", NA_character_),
           temp = if_else (entity_number %in% temp, "temp", NA_character_),
-          deficient = if_else (entity_number %in% deficiencies, "deficient", NA_character_),
+          deficient = if_else (entity_number %in% deficiencies, "deficient", "complete"),
           licensed = if_else (entity_number %in% issued, "licensed", NA_character_))
 
 rns2 %>% ungroup() %>% count (transaction_description)
@@ -594,7 +594,7 @@ rns_temp3 <- rns_temp2 %>%
           app_type = case_when (
             transaction_description=="Emergency RN Temp License" ~ "Emergency",
             transaction_description=="RN Request for Temporary License" ~ "Application"),
-          deficient = if_else (deficiency_y_n=="Y", "deficient", NA_character_)) %>%
+          deficient = if_else (deficiency_y_n=="Y", "deficient", "complete")) %>%
   #Standardize column names to join with endorsement records
   rename (issue_date = approved_date,
           application_date = received_date,
@@ -608,7 +608,7 @@ rns_all <- rbind (rn_exam5, rn_endorse2, rns_temp3)
 rns_all2 <- rns_all %>%
   #Remove NA times and adjust year to pending for those still open
   filter (process_time > -1) %>% #remove 2 negative times and 6108 NA times, mostly from 2019
-  mutate (year = if_else (is.na(year), "Pending", as.character(year))) %>%  
+  mutate (year = if_else (is.na(year), "Pending as of 01/04/22", as.character(year))) %>%  
   #Remove 1767 pending apps older than July 2020
   filter (!(str_detect(year, "^Pending") & (application_date < as.Date("2020-07-01"))))
 ```
@@ -1960,7 +1960,7 @@ pending_me <- read_csv ("/Users/austinfast/Documents/GitHub/Maine-nursing-licens
           lic_type = if_else (str_detect (type, "^RN"), "RN", "LPN"),
           app_type = if_else (str_detect (type, "Reciprocity"), "Endorsement", "Exam"),
           process_time = as.Date("2021-10-21") - app_date,
-          year = "Pending as of 10/21/2021") %>%
+          year = "Pending as of 10/21/21") %>%
   rename (application_date = app_date,
           lic_stat = status,
           origin = type)
@@ -3742,7 +3742,7 @@ tx_temp3 <- tx_temp2 %>%
   filter(application_status %in% c("Processing", "Ready to issue", "Retest", "PROC.GN", "PASSED.EX", "On Hold", "Approved-Retest", "APPL.REC", "APPLCNT")) %>%
   mutate (application_date = ymd(submitdate),
           data_state = "TX",
-          year = "Pending as of 10/01/2021") %>%
+          year = "Pending as of 10/01/21") %>%
   filter (application_date >= as.Date("2020-06-15")) %>% #Keep only this applications after system migration
   mutate (process_time = as.Date("2021-10-01") - application_date) %>%
   rename (state = state_or_territory,
@@ -4282,9 +4282,9 @@ filtered_data <- all_data2 %>%
   mutate (standard_app_type = case_when(
     str_detect(app_type, "Reinstatement") ~ "Reinstatement",
     str_detect(app_type, "Renewal") ~ "Renewal",
-    str_detect(lic_type, "Provisional") ~ "All",
-    str_detect(lic_type, "Temp") ~ "All",
-    lic_type=="Volunteer RN" ~ "All", #for 22 records in PA 
+    str_detect(lic_type, "Provisional") ~ "Temporary",
+    str_detect(lic_type, "Temp") ~ "Temporary",
+    lic_type=="Volunteer RN" ~ "Temporary", #for 22 records in PA 
     str_detect(app_type, "Endorsement") ~ "Endorsement",
     str_detect(app_type, "Exam-retest") ~ "Exam-retest",
     str_detect(app_type, "Exam") ~ "Exam",
@@ -4339,9 +4339,9 @@ valid_data2 <- valid_data %>%
   mutate (standard_app_type = case_when(
     str_detect(app_type, "Reinstatement") ~ "Reinstatement",
     str_detect(app_type, "Renewal") ~ "Renewal",
-    str_detect(lic_type, "Provisional") ~ "All",
-    str_detect(lic_type, "Temp") ~ "All",
-    lic_type=="Volunteer RN" ~ "All", #for 22 records in PA 
+    str_detect(lic_type, "Provisional") ~ "Temporary",
+    str_detect(lic_type, "Temp") ~ "Temporary",
+    lic_type=="Volunteer RN" ~ "Temporary", #for 22 records in PA 
     str_detect(app_type, "Endorsement") ~ "Endorsement",
     str_detect(app_type, "Exam-retest") ~ "Exam-retest",
     str_detect(app_type, "Exam") ~ "Exam",
@@ -4388,26 +4388,87 @@ Remove data points after Sept. 23, 2021, to standardize the timeframe among all 
 
 * Removes 64,239 applications after Sept 23, 2021, when first states sent records
 * Removes 154,981 licenses issued after Sept 23, 2021.
-```{r}
+
+```{r} 
+#How many still-pending applications are in full data? >> #96,173 
+valid_data %>% 
+  filter (str_detect (year, "^Pending")) %>%
+  nrow()
+
+#Remove any applications after Sept. 23, 2021 >> 64239
 valid_data2 <- valid_data2 %>%
   filter (application_date <= as.Date("2021-09-23")) 
 nrow(valid_data)-nrow(valid_data2)
 
-valid_data2 <- valid_data2 %>%
-  filter (issue_date <= as.Date("2021-09-23")) 
+#How many still-pending applications who applied before Sept. 23 are in this filtered data? >> #70,045 
+valid_data2 %>% 
+  filter (str_detect (year, "^Pending")) %>%
+  nrow()
 
-#removes 157,385 total records, to end up with 1,389,077 records. Some overlap if nurses applied and were issued after Sept. 23)
-nrow(valid_data)-nrow(valid_data2)
+#Filter out licenses issued after Sept. 23, keeping pending applications
+valid_data3 <- valid_data2 %>%
+  filter (!(year %in% c("2019", "2020", "2021") & issue_date > as.Date("2021-09-23"))) %>%
+  #Mark that CA + VA redacted names 
+  #Mark that NH redacted nurses' city/state
+  mutate (name = if_else (data_state %in% c("CA", "VA"), "REDACTED", name),
+          city = if_else (data_state == "NH", "REDACTED", city),
+          state = if_else (data_state == "NH", "REDACTED", state))
+
+#removes 87,425 total records, to end up with 1,459,037 records. Some overlap if nurses applied and were issued after Sept. 23)
+nrow(valid_data)-nrow(valid_data3)
+
+#How many still-pending applications who applied before Sept. 23 remain in this filtered data? >> #70,045, so none were lost
+valid_data3 %>% 
+  filter (str_detect (year, "^Pending")) %>%
+  nrow()
+```
+
+## Write to file
+Includes 2019-2021 and still-pending applications submitted after July 2020.
+1.4 million rows x 44 columns, so will be a very large file.
+```{r}
+#write_csv(valid_data2, "../output/nurse_licenses_all_2019_2021.csv")
+```
+
+Write dataset of only licenses **issued** from Jan. 1 to Sept. 23, 2021.
+
+* 432,000 rows x 44 columns
+
+Write dataset of pending license applications 
+
+* Only includes applications submitted after July 2020 that were still pending when their state boards submitted records to NPR.
+* 21 states included pending applicants.
+
+```{r}
+valid_data21 <- valid_data3 %>%
+  filter (!(year %in% c("2019", "2020"))) %>%
+  arrange (data_state, lic_type, app_type, desc(process_time2)) %>%
+  select (1:3, standard_app_type, 4:44)
+
+valid_data21 %>%
+  count (year)
+
+valid_data21_issued <- valid_data21 %>%
+  filter (year=="2021")
+valid_data21_pending <- valid_data21 %>%
+  filter (str_detect(year, "^Pending"))
+
+write_csv (valid_data21_issued, "../output/nurse_licenses_issued_2021.csv")
+write_csv (valid_data21_pending, "../output/nurse_licenses_pending_2021.csv")
 ```
 
 # STATE AVERAGES
 
-Group by state, license type, application type and year to find state medians, means and counts. Also count how many took longer than a month (30 days), two months, three months, etc.
+Group by state, license type, application type and year to find state medians, means and counts. Also count how many took longer than a month (using 30 days as proxy), two months (60 days), three months (90 days), etc.
 
-This code also creates separate dataframes breaking records down on by license type (RN or LPN) and all new nurses as one lumped group (excluding renewals, reinstatements, exam-retest).
+This code also creates separate dataframes breaking records down by license type (RN or LPN) and all new nurses as one lumped group (excluding renewals, reinstatements, exam-retest, since those take notably longer or state boards didn't track consistently).
+
+Most states didn't provide any applications submitted before Jan. 1, 2019, meaning 2019's data is incomplete since those licensed through the first months of 2019 likely applied in late-2018. Additionally, Hawaii, Oklahoma, Texas and Maine didn't provide any records from 2019. 
+
+So, I've removed 2019 from the state averages dataframe.
 ```{r}
 #Break down by state, license type, application type, and year.
-state_averages <- valid_data2 %>%
+state_averages <- valid_data3 %>%
   group_by (data_state, lic_type, standard_app_type, year) %>%
   summarize (mean = round(mean(process_time2)),
              median = median (process_time2),
@@ -4423,7 +4484,8 @@ state_averages <- valid_data2 %>%
              count_over180days = sum(process_time2 > 180),
              pct_over180days = count_over180days/count,
              count_over1year = sum(process_time2 > 365),
-             pct_over1year = count_over1year/count) 
+             pct_over1year = count_over1year/count) %>%
+  filter (year != "2019")
 
 #pending_counts <- state_averages %>%
 #  filter (str_detect(year, "^Pending")) %>%
@@ -4432,10 +4494,11 @@ state_averages <- valid_data2 %>%
 
 #Break down new licenses, separating by RN and LPN only (and by state and year).
 #Removes exam-retest, reinstatements, renewals
-state_avg_lic_type_only <- valid_data2 %>%
+state_avg_lic_type_only <- valid_data3 %>%
   filter (lic_type %in% c("LPN", "RN")) %>%
   filter (standard_app_type %in% c("Endorsement", "Exam", "Other", "Unknown")) %>%
-  group_by (data_state, lic_type, year) %>%
+  mutate (standard_app_type = "Endorsement+Exam+Other+Unknown") %>%
+  group_by (data_state, lic_type, standard_app_type, year) %>%
   summarize (mean = round(mean(process_time2)),
              median = median (process_time2),
              count = n(),
@@ -4450,15 +4513,16 @@ state_avg_lic_type_only <- valid_data2 %>%
              count_over180days = sum(process_time2 > 180),
              pct_over180days = count_over180days/count,
              count_over1year = sum(process_time2 > 365),
-             pct_over1year = count_over1year/count)
+             pct_over1year = count_over1year/count) %>%
+  filter (year != "2019")
 
-#Calculate state totals for 2021, combining all new RN/LPN licenses.
+#Break down new licenses, separating by application type only (and by state and year).
 #Removes exam-retest, reinstatements, renewals
-state_averages_lumped <- valid_data2 %>%
+state_avg_app_type_only <- valid_data3 %>%
   filter (lic_type %in% c("LPN", "RN")) %>%
   filter (standard_app_type %in% c("Endorsement", "Exam", "Other", "Unknown")) %>%
-  filter (year == "2021") %>%
-  group_by (data_state, year) %>%
+  mutate (lic_type = "LPN+RN") %>%
+  group_by (data_state, lic_type, standard_app_type, year) %>%
   summarize (mean = round(mean(process_time2)),
              median = median (process_time2),
              count = n(),
@@ -4473,15 +4537,46 @@ state_averages_lumped <- valid_data2 %>%
              count_over180days = sum(process_time2 > 180),
              pct_over180days = count_over180days/count,
              count_over1year = sum(process_time2 > 365),
-             pct_over1year = count_over1year/count)
+             pct_over1year = count_over1year/count) %>%
+  filter (year != "2019")
 
-#write_csv (state_averages_lumped, "PRINT_THIS.csv")
+#Calculate state totals for 2021, combining all new RN/LPN licenses who applied through endorsement, exam, other and unknown (CT/VA).
+#Removes exam-retest, reinstatements, renewals
+state_averages_combined <- valid_data3 %>%
+  filter (lic_type %in% c("LPN", "RN")) %>%
+  filter (standard_app_type %in% c("Endorsement", "Exam", "Other", "Unknown")) %>%
+  mutate (lic_type = "LPN+RN",
+          standard_app_type = "Endorsement+Exam+Other+Unknown") %>%
+  group_by (data_state, lic_type, standard_app_type, year) %>%
+  summarize (mean = round(mean(process_time2)),
+             median = median (process_time2),
+             count = n(),
+             count_over30days = sum(process_time2 > 30),
+             pct_over30days = count_over30days/count,
+             count_over60days = sum(process_time2 > 60),
+             pct_over60days = count_over60days/count,
+             count_over90days = sum(process_time2 > 90),
+             pct_over90days = count_over90days/count,
+             count_over120days = sum(process_time2 > 120),
+             pct_over120days = count_over120days/count,
+             count_over180days = sum(process_time2 > 180),
+             pct_over180days = count_over180days/count,
+             count_over1year = sum(process_time2 > 365),
+             pct_over1year = count_over1year/count) %>%
+  filter (year != "2019")
+
+#Write summary files
+write_csv (state_averages, "../output/state_averages_by_app_lic_type.csv")
+write_csv (state_avg_lic_type_only, "../output/state_averages_lic_type_only.csv")
+write_csv (state_avg_app_type_only, "../output/state_averages_app_type_only.csv")
+write_csv (state_averages_combined, "../output/state_averages_combined.csv")
 ```
 
 Which states had the most new nurses (both LPNs and RNs combined) take a long time?
 Ordering by share of nurses that took over 3 months
 ```{r}
-state_averages_lumped %>%
+state_averages_combined %>%
+  filter (year=="2021") %>%
   arrange (desc(pct_over90days))
 ```
 
@@ -4501,7 +4596,7 @@ avg_counts %>%
   filter (lic_type %in% c("RN", "LPN") & standard_app_type %in% c("Endorsement", "Exam", "Other", "Unknown")) %>%
   summarize (total = sum(count))
 
-valid_data2 %>%
+valid_data3 %>%
   ungroup() %>%
   filter (year=="2021") %>%
   filter (lic_type %in% c("RN", "LPN") & standard_app_type %in% c("Endorsement", "Exam", "Other", "Unknown")) %>%
@@ -4512,7 +4607,7 @@ valid_data2 %>%
 Repeat state average calculations, but without grouping by state so as to calculate "national" averages for our sample of 32 states that provided records.
 ```{r}
 #Break down by license type, application type and year
-natl_averages <- valid_data2 %>%
+natl_averages <- valid_data3 %>%
   mutate (year = if_else (str_detect(year, "^Pending"), "Pending", year)) %>%
   group_by (lic_type, standard_app_type, year) %>%
   summarize (mean = round(mean(process_time2)),
@@ -4531,7 +4626,8 @@ natl_averages <- valid_data2 %>%
              count_over180days = sum(process_time2 > 180),
              pct_over180days = count_over180days/count,
              count_over1year = sum(process_time2 > 365),
-             pct_over1year = count_over1year/count)
+             pct_over1year = count_over1year/count) %>%
+  filter (year != "2019")
 
 #Nationally, it's taking about six days longer (median) to get an RN by examination than last year and three days longer for RN by endorsement. 
 natl_comparison <- natl_averages %>%
@@ -4543,8 +4639,9 @@ natl_comparison <- natl_averages %>%
   arrange (standard_app_type) %>%
   mutate (change_med = median_2021 - median_2020)
 
+#natl_averages2 <- natl_avg_lic_type
 #What about for new licenses only, grouped into LPN + RN?
-natl_averages2 <- valid_data2 %>%
+natl_avg_lic_type <- valid_data3 %>%
   mutate (year = if_else (str_detect(year, "^Pending"), "Pending", year)) %>%
   filter (!(standard_app_type %in% c("Reinstatement", "Renewal", "Exam-retest"))) %>%
   group_by (lic_type, year) %>%
@@ -4562,10 +4659,11 @@ natl_averages2 <- valid_data2 %>%
              count_over180days = sum(process_time2 > 180),
              pct_over180days = count_over180days/count,
              count_over1year = sum(process_time2 > 365),
-             pct_over1year = count_over1year/count)
+             pct_over1year = count_over1year/count) %>%
+  filter (year != "2019")
 
 #Nationally, RN licenses are taking 5 days longer and LPNs are taking 6 days longer than last year. 
-natl_comparison2 <- natl_averages2 %>%
+natl_comparison2 <- natl_avg_lic_type %>%
   #filter (lic_type %in% c("LPN", "RN")) %>%
   filter (year %in% c("2020", "2021")) %>%
   pivot_wider (id_cols = c(lic_type),
@@ -4580,7 +4678,7 @@ natl_comparison2 <- natl_averages2 %>%
 
 #What about for all new RN/LPN licenses, grouping exam, endorsement, other and unknown together?
 #app_types: Unknown is mostly CT/VA, which didn't specify application type
-natl_averages3 <- valid_data2 %>%
+natl_averages_combined <- valid_data3 %>%
   mutate (year = if_else (str_detect(year, "^Pending"), "Pending", year)) %>%
   filter (lic_type %in% c("LPN", "RN")) %>%
   filter (!(standard_app_type %in% c("Reinstatement", "Renewal", "Exam-retest"))) %>%
@@ -4599,15 +4697,17 @@ natl_averages3 <- valid_data2 %>%
              count_over180days = sum(process_time2 > 180),
              pct_over180days = count_over180days/count,
              count_over1year = sum(process_time2 > 365),
-             pct_over1year = count_over1year/count)
+             pct_over1year = count_over1year/count) %>%
+  filter (year != "2019")
 
 #Group by application type only
 #app_types: Unknown is mostly CT/VA, which didn't specify application type
-natl_averages4 <- valid_data2 %>%
+natl_avg_app_type_only <- valid_data3 %>%
   mutate (year = if_else (str_detect(year, "^Pending"), "Pending", year)) %>%
   filter (lic_type %in% c("LPN", "RN")) %>%
   filter (!(standard_app_type %in% c("Reinstatement", "Renewal", "Exam-retest"))) %>%
-  group_by (standard_app_type, year) %>%
+  mutate (lic_type = "LPN+RN") %>%
+  group_by (lic_type, standard_app_type, year) %>%
   summarize (mean = round(mean(process_time2)),
              median = median (process_time2),
              count = n(),
@@ -4622,7 +4722,14 @@ natl_averages4 <- valid_data2 %>%
              count_over180days = sum(process_time2 > 180),
              pct_over180days = count_over180days/count,
              count_over1year = sum(process_time2 > 365),
-             pct_over1year = count_over1year/count)
+             pct_over1year = count_over1year/count) %>%
+  filter (year != "2019")
+
+#Write summary files
+write_csv (natl_averages, "../output/natl_averages_by_app_lic_type.csv")
+write_csv (natl_avg_lic_type, "../output/natl_averages_lic_type_only.csv")
+write_csv (natl_avg_app_type_only, "../output/natl_averages_app_type_only.csv")
+write_csv (natl_averages_combined, "../output/natl_averages_combined.csv")
 
 end_time <- Sys.time()
 paste ("Processing time lasted", (end_time-start_time))
@@ -4636,14 +4743,15 @@ Most states didn't provide applications before Jan. 1, 2019, meaning 2019's data
 
 ```{r}
 #What are the ranges of application dates for each state's data? 
-valid_data2 %>%
+valid_data3 %>%
   group_by (data_state) %>%
   summarize (apps = range(application_date),
              lics = range(issue_date, na.rm=T)) %>%
   mutate (id = if_else (row_number()==1, "start", "end")) %>%
   pivot_wider (names_from = c(id),
                values_from = c(apps, lics)) %>%
-  arrange (desc(apps_start))
+  arrange (desc(apps_start)) %>%
+  print(n=1e3)
 ```
 
 **FACT CHECK**
@@ -4671,7 +4779,7 @@ compare_count <- natl_averages %>%
              across(c(count_over30days, count_over60days, count_over90days, count_over120days, count_over180days, count_over1year), ~(sum(.x))))
 
 #Show counts and percents of all new nurses
-rbind (compare_count, compare_pct)
+rbind (compare_count, compare_pct) %>% print(n=1e3)
 
 #How many total new RNs + LPNs in 2021? = 226,225 nurses
 compare_pct[compare_pct$year=="2021", "count"] 
@@ -4683,7 +4791,7 @@ compare_pct[compare_pct$year=="2021", "count_over180days"]
 
 How many nurses waited over six months? 19,924 nurses
 ```{r}
-valid_data2 %>% 
+valid_data3 %>% 
   filter (process_time2 > 180) %>%
   filter (year=="2021") %>%
   filter (standard_app_type %in% c("Endorsement", "Exam", "Other", "Unknown")) %>%
@@ -4717,10 +4825,10 @@ Count up totals by RN/LPN and application type (includes reinstatement/renewal/r
 
 * Longer than 60 days: 
   + Exams: 63% of LPNs (13532) and 73% of RNs (69977) took longer than 60 days to process.
-  + Endorsement: 44% of LPNs (2697) and 43% of RNs (36038) took longer than 60 days to process.
+  + Endorsement: 45% of LPNs (2697) and 42% of RNs (36038) took longer than 60 days to process.
 
 * Longer than 90 days: 
-  + Exams: 37% of LPNs (8060) and 44% of RNs (41308) took longer than 90 days to process.
+  + Exams: 37% of LPNs (8060) and 43% of RNs (41308) took longer than 90 days to process.
   + Endorsement: 32% of LPNs (1938) and 30% of RNs (24950) took longer than 90 days to process.
 ```{r}
 compare_count2 <- natl_averages %>%
@@ -4740,7 +4848,8 @@ compare_pct2 <- natl_averages %>%
              across(c(count_over30days, count_over60days, count_over90days, count_over120days, count_over180days, count_over1year), ~(sum(.x))/sum(count)))
 
 rbind (compare_count2, compare_pct2) %>%
-  filter (year %in% c("2021", "Pending") & standard_app_type %in% c("Exam", "Endorsement"))
+  filter (year %in% c("2021", "Pending") & standard_app_type %in% c("Exam", "Endorsement")) %>%
+  print(n=1e3)
 ```
 
 How many states can break out by application type (exam vs. endorsement)? 
@@ -4779,9 +4888,9 @@ endorsement21 <- valid_data %>%
   mutate (standard_app_type = case_when(
     str_detect(app_type, "Reinstatement") ~ "Reinstatement",
     str_detect(app_type, "Renewal") ~ "Renewal",
-    str_detect(lic_type, "Provisional") ~ "All",
-    str_detect(lic_type, "Temp") ~ "All",
-    lic_type=="Volunteer RN" ~ "All", #for 22 records in PA 
+    str_detect(lic_type, "Provisional") ~ "Temporary",
+    str_detect(lic_type, "Temp") ~ "Temporary",
+    lic_type=="Volunteer RN" ~ "Temporary", #for 22 records in PA 
     str_detect(app_type, "Endorsement") ~ "Endorsement",
     str_detect(app_type, "Exam-retest") ~ "Exam-retest",
     str_detect(app_type, "Exam") ~ "Exam",
@@ -4810,7 +4919,7 @@ tx_averages <- state_averages %>%
   filter (year == "2021") #%>%
   #select (1:3, 5, 6, over60days, pct_over60days, over90days, pct_over90days)
 
-tx_data <- valid_data2 %>%
+tx_data <- valid_data3 %>%
   filter (data_state=="TX") %>%
   filter (year == "2021")
   
@@ -4831,23 +4940,27 @@ tx_data %>%
 #How do states rank for LPNs by endorsement?
 state_averages %>%
   filter (standard_app_type=="Endorsement" & year=="2021" & lic_type=="LPN") %>%
-  arrange (median)
+  arrange (median) %>%
+  print(n=1e3)
 #How do states rank for RNs by endorsement?
 state_averages %>%
   filter (standard_app_type=="Endorsement" & year=="2021" & lic_type=="RN") %>%
-  arrange (median)
+  arrange (median) %>%
+  print(n=1e3)
 #How do states rank for LPNs by Exam?
 state_averages %>%
   filter (standard_app_type=="Exam" & year=="2021" & lic_type=="LPN") %>%
-  arrange (median)
+  arrange (median) %>%
+  print(n=1e3)
 #How do states rank for RNs by Exam?
 state_averages %>%
   filter (standard_app_type=="Exam" & year=="2021" & lic_type=="RN") %>%
-  arrange (median)
+  arrange (median) %>%
+  print(n=1e3)
 ```
 
 ## Compare 2020 to 2021
-Not sure I can use change from 2020-2021 for some states where I didn't get 2019-2021, like Texas, Maine, etc.
+Cannot can use change from 2020-2021 for some states where I didn't get 2019-2021, like Texas, Maine, etc.
 
 * Ohio RN endorsement median increased from 63 days to 119 (56-day jump)
 * Ohio LPN endorsement median increased from 51 days to 106 (55-day jump)
@@ -5027,7 +5140,7 @@ for (license in lic_types){
 ```
 
 ## Mean bar charts 
-Uses exam_end data frame just above (before NPR graphics version below)
+Uses exam_end data frame just above (before NPR graphics version below). We did not use means because they're sensitive to outliers, and these records have quite a few outliers that took hundreds of days to process.
 ```{r}
 lic_types <- c("RN", "LPN")
 app_types <- c("Exam", "Endorsement")
@@ -5182,9 +5295,11 @@ exam_end4 <- exam_end3 %>%
   full_join (min, by = c("lic_type", "standard_app_type", "type")) %>%
   full_join (max, by = c("lic_type", "standard_app_type", "type")) %>%
   select (1:3, natl_look, state_min, state_max, 4:33)
+```
 
-##Calculate by license type only, combining exam, endorsement, other, unknown app types
-##THIS ALLOWS FOR CT & VA TO BE ADDED IN SINCE THEY DIDN'T SEPARATE BY APPLICATION TYPE
+Calculate by license type only, combining exam, endorsement, other, unknown app types
+THIS ALLOWS FOR CT & VA TO BE ADDED IN SINCE THEY DIDN'T SEPARATE BY APPLICATION TYPE
+```{r}
 min_lic_type <- state_avg_lic_type_only %>%
   filter (year=="2021") %>%
   mutate (mean = as.integer(mean),
@@ -5215,7 +5330,7 @@ max_lic_type <- state_avg_lic_type_only %>%
                names_to = "type", 
                values_to = "state_max")
 
-natl_averages4 <- natl_averages2 %>%
+natl_averages4 <- natl_avg_lic_type %>%
   filter (year=="2021" & lic_type %in% c("LPN", "RN")) %>%
   mutate (mean = as.integer(mean),
           median= as.integer(median)) %>%
@@ -5234,14 +5349,7 @@ exam_end_lic_only2 <- exam_end_lic_only %>%
   full_join (min_lic_type, by = c("lic_type", "type")) %>%
   full_join (max_lic_type, by = c("lic_type", "type")) %>%
   mutate (standard_app_type = "All new licenses") %>%
-  select (1:2, standard_app_type, natl_look, state_min, state_max, 3:33)
-
-final2 <- rbind (exam_end_lic_only2, exam_end4) %>%
-  rename (measure = type, 
-          `category (license type)`=lic_type,
-          `label (application type)`=standard_app_type)
-
-#write_csv (final2, "FOR CONNIE-State-summary-lic-type-app-type3+NC+TN-reduced2.csv")
+  select (1:2, standard_app_type, natl_look, state_min, state_max, 3:34)
 ```
 
 Which states have other/unknown application types, meaning "All new licenses" will be more than sum of Exam+Endorsement?
@@ -5263,7 +5371,7 @@ avg_counts <- state_averages %>%
   summarize (count = sum(count))
 
 #Was there an error summarizing?
-valid_data2 %>%
+valid_data3 %>%
   filter (year=="2021") %>%
   group_by (lic_type, standard_app_type) %>%
   summarize (raw_count = n()) %>%
@@ -5272,12 +5380,79 @@ valid_data2 %>%
   arrange (desc(diff))
 ```
 
+Combined RNs+LPNs and combine application type, keeping only exam, endorsement, other, unknown app types
+THIS ALLOWS FOR CT & VA TO BE ADDED IN
+```{r}
+#Analyzing by license type only
+exam_end_combined <- state_averages_combined %>% 
+  filter (year %in% c("2021")) %>%
+  select (-year) %>%
+  mutate (mean = as.integer(mean),
+          median= as.integer(median)) 
+
+min_lic_type2 <- state_averages_combined %>%
+  filter (year=="2021") %>%
+  mutate (mean = as.integer(mean),
+          median= as.integer(median)) %>%
+  group_by (lic_type) %>%
+  summarize (across(3:18, ~min(.x))) %>%
+  add_column(data_state="state_min") %>%
+  select (-year) 
+
+max_lic_type2 <- state_averages_combined %>%
+  filter (year=="2021") %>%
+  mutate (mean = as.integer(mean),
+          median= as.integer(median)) %>%
+  group_by (lic_type) %>%
+  summarize (across(3:18, ~max(.x))) %>%
+  add_column (data_state="state_max") %>%
+  select (-year) 
+
+natl_averages5 <- natl_averages_combined %>%
+  filter (year=="2021") %>%
+  mutate (mean = as.integer(mean),
+          median= as.integer(median)) %>%
+  add_column(data_state="natl_look") %>%
+  select (-year) 
+
+exam_end_combined2 <- exam_end_combined %>%
+  rbind (natl_averages5, min_lic_type2, max_lic_type2) %>%
+  arrange (data_state) %>%
+  mutate (standard_app_type = "All new licenses (Endorsement, exam, other, unknown)",
+          lic_type = "All (LPN+RN)")  %>%
+  select (1:6) %>%
+  pivot_longer (cols = c("mean", "median", "count"),
+                names_to = "type",
+                values_to = "value") %>%
+  pivot_wider (id_cols = c("type","lic_type", "standard_app_type"),
+               names_from = "data_state",
+               values_from = "value") %>%
+  select (1:3, natl_look, state_min, state_max, 4:19, 21:30, 33:38)
+
+for_connie <- rbind (exam_end_combined2, exam_end_lic_only2, exam_end4) %>%
+  arrange (lic_type, standard_app_type) %>%
+  rename (app_type = standard_app_type)
+
+write_csv (for_connie, "../output/2021_state_summary.csv")
+
+#Convert back to tidy version
+for_connie2 <- for_connie %>%
+  pivot_longer (cols = 4:38,
+                names_to = "state",
+                values_to = "value") %>%
+  pivot_wider (id_cols = c("lic_type", "app_type", "state"),
+               values_from = "value",
+               names_from = "type")
+
+write_csv (for_connie2, "../output/2021_state_summary_tidy.csv")
+```
+
 ## Histograms-weeks to license
 Create histograms of each state's number of weeks to license by license type and application type. Optionally, save graphs of each
 
 This code converts processing time to weeks, rounding up for any portion of a week
 ```{r}
-weeks_to_license <- valid_data2 %>%
+weeks_to_license <- valid_data3 %>%
  # group_by (year, data_state, lic_type, standard_app_type) %>%
 #  mutate (median21 = median (process_time2)) %>%
   mutate (#week_count = round(as.numeric(process_time2/7)), #will round down if below 0.5
@@ -5288,7 +5463,7 @@ weeks_to_license <- valid_data2 %>%
 #  rename (licensee_count = n)
 
 #Check that week_count captures weeks accurately
-valid_data2 %>%
+valid_data3 %>%
   mutate (week_count = ceiling(as.numeric(process_time2/7))) %>%
   group_by (week_count) %>%
   summarize (min (process_time2),
@@ -5297,7 +5472,7 @@ valid_data2 %>%
 
 Convert data for NPR news apps team
 ```{r}
-valid_data3 <- valid_data2 %>%
+valid_data4 <- valid_data3 %>%
   filter (year == "2021") %>%
   group_by (year, data_state, lic_type, standard_app_type) %>%
   summarize (median21 = median (process_time2),
@@ -5316,7 +5491,7 @@ connie_histographs <- weeks_to_license %>%
 
 #write_csv (connie_histographs, "Nurse licenses-weeks to licensure.csv")
 #write_csv (weeks_to_license, "Nurse licenses-weeks to licensure-tidy.csv")
-#write_csv (valid_data3, "Nurse licenses-weeks to licensure-state medians.csv")
+#write_csv (valid_data4, "Nurse licenses-weeks to licensure-state medians.csv")
   
 #Separating for Connie into CA, PA, TX
 pa_weeks_to_license <- weeks_to_license %>%
@@ -5329,7 +5504,7 @@ pa_weeks_to_license <- weeks_to_license %>%
 #  mutate (across(2:5, ~replace_na(.x, 0)))
 #write_csv (tx, "Nurse licenses-weeks to licensure-TX.csv")
   
-pa_weeks_to_license2 <- valid_data2 %>% #FOR JAN-SEPT
+pa_weeks_to_license2 <- valid_data3 %>% #FOR JAN-SEPT
   ungroup() %>%
   filter (data_state=="PA" & year == "2021") %>%
   group_by (year, data_state, lic_type, standard_app_type) %>%
@@ -5410,11 +5585,11 @@ for (i in states){
   
   #CT/VA don't separate by exam/endorsement, so change here
   if (state %in% c("CT", "VA")){
-  rn_med <- valid_data3 %>% 
+  rn_med <- valid_data4 %>% 
     filter (data_state==state & lic_type=="RN" & standard_app_type=="Unknown") %>%
     mutate (median21 = as.numeric(median21) / 7) %>%
     pull (median21)
-  lpn_med <- valid_data3 %>% 
+  lpn_med <- valid_data4 %>% 
     filter (data_state==state & lic_type=="LPN" & standard_app_type=="Unknown") %>%
     mutate (median21 = as.numeric(median21) / 7) %>%
     pull (median21)
@@ -5507,7 +5682,7 @@ print (lpn_graph)
                      #limits=c(0, 800)
                      ) +
   #ADD ALL MEDIANS TO ALL FACETS HERE
-  geom_vline(data = (valid_data3 %>% filter (data_state == state & lic_type=="RN" & standard_app_type %in% c("Exam", "Endorsement"))), mapping = aes(xintercept = med_weeks)) + 
+  geom_vline(data = (valid_data4 %>% filter (data_state == state & lic_type=="RN" & standard_app_type %in% c("Exam", "Endorsement"))), mapping = aes(xintercept = med_weeks)) + 
   labs(x="Weeks from application to licensure", 
        y="Count of applicants", 
        title=paste(state, "registered nurse licenses issued in 2021"), 
@@ -5545,7 +5720,7 @@ lpn_graph <- weeks_to_license %>%
   #Add padding so they appear equal width
   scale_y_continuous(labels = function(x) stringr::str_pad(x, width = 4, pad = "0")) +
   #ADD ALL MEDIANS TO ALL FACETS HERE
-  geom_vline(data = (valid_data3 %>% filter (data_state == state & lic_type=="LPN" & standard_app_type %in% c("Exam", "Endorsement"))), mapping = aes(xintercept = med_weeks)) + 
+  geom_vline(data = (valid_data4 %>% filter (data_state == state & lic_type=="LPN" & standard_app_type %in% c("Exam", "Endorsement"))), mapping = aes(xintercept = med_weeks)) + 
  # geom_vline (xintercept = 90, linetype = "dashed", colour = "black") + 
   labs(x="Weeks from application to licensure", 
        y="Count of applicants", 
@@ -5650,7 +5825,7 @@ va_state %>%
   nrow()
 
 #Triple checking another way, but this is standardized timeframe, so it will be slightly less
-valid_data2 %>% 
+valid_data3 %>% 
   filter (data_state=="VA" & lic_type %in% c("RN", "LPN") & standard_app_type=="Unknown" & year=="2021") %>%
   group_by (data_state, lic_type, standard_app_type, year) %>%
   summarize (count = n(),
@@ -5679,8 +5854,8 @@ ca_weeks_to_license2 <- ca_weeks_to_license %>%
   mutate (standard_app_type = case_when(
     str_detect(app_type, "Reinstatement") ~ "Reinstatement",
     str_detect(app_type, "Renewal") ~ "Renewal",
-    str_detect(lic_type, "Provisional") ~ "All",
-    str_detect(lic_type, "Temp") ~ "All",
+    str_detect(lic_type, "Provisional") ~ "Temporary",
+    str_detect(lic_type, "Temp") ~ "Temporary",
     str_detect(app_type, "Endorsement") ~ "Endorsement",
     str_detect(app_type, "Exam-retest") ~ "Exam-retest",
     str_detect(app_type, "Exam") ~ "Exam",
@@ -5753,7 +5928,7 @@ ca_weeks_to_license4 <- ca_weeks_to_license3 %>% #change to 3 if want to take on
 ca_weeks_to_license5 <- ca_weeks_to_license3 %>% #FOR JAN-SEPT
   ungroup() %>%
   filter (year == "2021") %>%
-  mutate (deficient = if_else (is.na(deficient), "complete", deficient)) %>%
+ # mutate (deficient = if_else (is.na(deficient), "complete", deficient)) %>%
   group_by (year, data_state, lic_type, standard_app_type, deficient) %>%
   summarize (mean21 = mean (process_time2),
              median21 = median (process_time2),
@@ -5822,7 +5997,7 @@ Find by license type AND application type for LICENSES ISSUED ONLY Jan-Dec 2021
 ca_weeks_to_license_full_year <- ca_weeks_to_license2 %>% #FULL YEAR
   ungroup() %>%
   filter (year == "2021") %>%
-  mutate (deficient = if_else (is.na(deficient), "complete", deficient)) %>%
+ # mutate (deficient = if_else (is.na(deficient), "complete", deficient)) %>%
   group_by (year, data_state, lic_type, standard_app_type, deficient) %>%
   summarize (mean21 = mean (process_time2),
              median21 = median (process_time2),
@@ -5846,7 +6021,7 @@ ca_weeks_to_license_full_year %>%
   filter (lic_type %in% c("RN", "LPN")) %>%
   filter (standard_app_type != "Exam-retest" & deficient=="deficient") %>%
   select (lic_type, standard_app_type, median21, count, pct) %>%
-  print()
+  print(n=1e3)
 ```
 
 Export data for NPR's News Apps team and double-check stacked chart NPR news apps team created.

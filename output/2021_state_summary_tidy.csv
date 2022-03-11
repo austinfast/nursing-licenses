@@ -1,0 +1,246 @@
+lic_type,app_type,state,mean,median,count
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",natl_look,89,70,226225
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",state_min,16,1,590
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",state_max,124,102,24979
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",AR,81,77,2907
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",CA,121,96,24979
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",CO,53,29,5904
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",CT,53,24,7973
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",HI,52,51,1746
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",IA,76,59,3282
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",IL,108,69,13119
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",IN,91,79,6420
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",KY,86,64,4788
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",LA,98,74,828
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",MA,64,40,9420
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",ME,59,39,1988
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",MI,76,55,10121
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",MN,112,83,15184
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",MS,90,82,2947
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",MT,84,57,1847
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",NC,83,68,10475
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",NE,69,58,2102
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",NH,53,43,1923
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",NJ,98,70,8470
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",NM,58,41,2138
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",OH,87,70,15482
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",OK,60,54,3978
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",OR,62,38,7565
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",PA,124,97,11944
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",SC,53,42,5012
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",TN,70,59,7504
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",TX,105,102,22642
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",VA,82,68,7913
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",VT,16,1,3062
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",WV,75,69,1972
+All (LPN+RN),"All new licenses (Endorsement, exam, other, unknown)",WY,61,47,590
+LPN,All new licenses,natl_look,97,70,29199
+LPN,All new licenses,state_min,22,5,59
+LPN,All new licenses,state_max,152,112,4136
+LPN,All new licenses,AR,83,74,754
+LPN,All new licenses,CA,116,82,4136
+LPN,All new licenses,CO,56,35,415
+LPN,All new licenses,CT,119,79,399
+LPN,All new licenses,HI,50,51,59
+LPN,All new licenses,IA,70,55,639
+LPN,All new licenses,IL,92,58,1191
+LPN,All new licenses,IN,92,72,631
+LPN,All new licenses,KY,86,56,729
+LPN,All new licenses,LA,98,74,828
+LPN,All new licenses,MA,70,40,722
+LPN,All new licenses,ME,53,33,101
+LPN,All new licenses,MI,73,44,1058
+LPN,All new licenses,MN,113,77,1944
+LPN,All new licenses,MS,86,72,600
+LPN,All new licenses,MT,69,59,90
+LPN,All new licenses,NC,83,59,1173
+LPN,All new licenses,NE,65,57,356
+LPN,All new licenses,NH,65,51,163
+LPN,All new licenses,NJ,127,73,1002
+LPN,All new licenses,NM,56,39,138
+LPN,All new licenses,OH,85,64,2623
+LPN,All new licenses,OK,86,71,801
+LPN,All new licenses,OR,73,43,512
+LPN,All new licenses,PA,152,112,1701
+LPN,All new licenses,SC,58,37,617
+LPN,All new licenses,TN,99,71,930
+LPN,All new licenses,TX,101,93,3513
+LPN,All new licenses,VA,107,78,1024
+LPN,All new licenses,VT,22,5,350
+LPN,All new licenses,WV,NA,NA,NA
+LPN,All new licenses,WY,NA,NA,NA
+LPN,Endorsement,natl_look,86,51,6039
+LPN,Endorsement,state_min,7,1,38
+LPN,Endorsement,state_max,155,126,904
+LPN,Endorsement,AR,65,35,92
+LPN,Endorsement,CA,121,78,548
+LPN,Endorsement,CO,45,19,149
+LPN,Endorsement,CT,NA,NA,NA
+LPN,Endorsement,HI,46,46,51
+LPN,Endorsement,IA,68,45,63
+LPN,Endorsement,IL,69,33,267
+LPN,Endorsement,IN,85,48,214
+LPN,Endorsement,KY,78,27,196
+LPN,Endorsement,LA,90,51,85
+LPN,Endorsement,MA,61,31,253
+LPN,Endorsement,ME,50,28,68
+LPN,Endorsement,MI,51,24,273
+LPN,Endorsement,MN,145,107,452
+LPN,Endorsement,MS,82,54,63
+LPN,Endorsement,MT,57,34,56
+LPN,Endorsement,NC,89,58,462
+LPN,Endorsement,NE,45,26,38
+LPN,Endorsement,NH,52,35,74
+LPN,Endorsement,NJ,91,52,199
+LPN,Endorsement,NM,59,24,52
+LPN,Endorsement,OH,137,106,267
+LPN,Endorsement,OK,75,44,70
+LPN,Endorsement,OR,59,35,285
+LPN,Endorsement,PA,155,126,233
+LPN,Endorsement,SC,36,21,214
+LPN,Endorsement,TN,73,63,201
+LPN,Endorsement,TX,90,73,904
+LPN,Endorsement,VA,NA,NA,NA
+LPN,Endorsement,VT,7,1,210
+LPN,Endorsement,WV,NA,NA,NA
+LPN,Endorsement,WY,NA,NA,NA
+LPN,Exam,natl_look,100,73,21622
+LPN,Exam,state_min,44,36,8
+LPN,Exam,state_max,151,111,3588
+LPN,Exam,AR,86,76,662
+LPN,Exam,CA,115,83,3588
+LPN,Exam,CO,62,42,266
+LPN,Exam,CT,NA,NA,NA
+LPN,Exam,HI,79,82,8
+LPN,Exam,IA,71,56,576
+LPN,Exam,IL,99,63,924
+LPN,Exam,IN,95,77,417
+LPN,Exam,KY,89,63,533
+LPN,Exam,LA,99,75,743
+LPN,Exam,MA,74,47,469
+LPN,Exam,ME,61,37,33
+LPN,Exam,MI,81,50,785
+LPN,Exam,MN,104,74,1492
+LPN,Exam,MS,86,75,537
+LPN,Exam,MT,90,78,34
+LPN,Exam,NC,80,59,711
+LPN,Exam,NE,67,59,318
+LPN,Exam,NH,73,58,71
+LPN,Exam,NJ,136,78,803
+LPN,Exam,NM,54,49,85
+LPN,Exam,OH,79,61,2356
+LPN,Exam,OK,95,80,635
+LPN,Exam,OR,90,53,227
+LPN,Exam,PA,151,111,1468
+LPN,Exam,SC,69,44,403
+LPN,Exam,TN,106,73,729
+LPN,Exam,TX,105,96,2609
+LPN,Exam,VA,NA,NA,NA
+LPN,Exam,VT,44,36,140
+LPN,Exam,WV,NA,NA,NA
+LPN,Exam,WY,NA,NA,NA
+RN,All new licenses,natl_look,88,70,197026
+RN,All new licenses,state_min,15,1,590
+RN,All new licenses,state_max,122,104,20843
+RN,All new licenses,AR,80,77,2153
+RN,All new licenses,CA,122,98,20843
+RN,All new licenses,CO,53,29,5489
+RN,All new licenses,CT,50,22,7574
+RN,All new licenses,HI,52,51,1687
+RN,All new licenses,IA,78,61,2643
+RN,All new licenses,IL,110,70,11928
+RN,All new licenses,IN,91,80,5789
+RN,All new licenses,KY,86,66,4059
+RN,All new licenses,LA,NA,NA,NA
+RN,All new licenses,MA,64,41,8698
+RN,All new licenses,ME,60,39,1887
+RN,All new licenses,MI,76,56,9063
+RN,All new licenses,MN,112,83,13240
+RN,All new licenses,MS,92,85,2347
+RN,All new licenses,MT,84,57,1757
+RN,All new licenses,NC,83,69,9302
+RN,All new licenses,NE,70,59,1746
+RN,All new licenses,NH,52,42,1760
+RN,All new licenses,NJ,94,70,7468
+RN,All new licenses,NM,58,41,2000
+RN,All new licenses,OH,87,71,12859
+RN,All new licenses,OK,54,50,3177
+RN,All new licenses,OR,61,38,7053
+RN,All new licenses,PA,119,96,10243
+RN,All new licenses,SC,53,43,4395
+RN,All new licenses,TN,66,57,6574
+RN,All new licenses,TX,105,104,19129
+RN,All new licenses,VA,79,66,6889
+RN,All new licenses,VT,15,1,2712
+RN,All new licenses,WV,75,69,1972
+RN,All new licenses,WY,61,47,590
+RN,Endorsement,natl_look,79,49,84881
+RN,Endorsement,state_min,8,1,345
+RN,Endorsement,state_max,138,119,10668
+RN,Endorsement,AR,67,39,739
+RN,Endorsement,CA,129,103,10668
+RN,Endorsement,CO,36,19,3153
+RN,Endorsement,CT,NA,NA,NA
+RN,Endorsement,HI,46,41,1450
+RN,Endorsement,IA,73,44,969
+RN,Endorsement,IL,65,30,5103
+RN,Endorsement,IN,76,41,2307
+RN,Endorsement,KY,71,28,1552
+RN,Endorsement,LA,NA,NA,NA
+RN,Endorsement,MA,58,28,5220
+RN,Endorsement,ME,59,30,1049
+RN,Endorsement,MI,59,29,4317
+RN,Endorsement,MN,116,83,6182
+RN,Endorsement,MS,83,50,563
+RN,Endorsement,MT,58,32,1063
+RN,Endorsement,NC,79,56,4421
+RN,Endorsement,NE,42,23,599
+RN,Endorsement,NH,50,36,1145
+RN,Endorsement,NJ,89,49,3777
+RN,Endorsement,NM,37,21,961
+RN,Endorsement,OH,138,119,3210
+RN,Endorsement,OK,55,38,544
+RN,Endorsement,OR,51,31,5583
+RN,Endorsement,PA,122,90,3989
+RN,Endorsement,SC,36,24,2180
+RN,Endorsement,TN,50,36,2948
+RN,Endorsement,TX,84,70,7530
+RN,Endorsement,VA,NA,NA,NA
+RN,Endorsement,VT,8,1,2375
+RN,Endorsement,WV,55,35,939
+RN,Endorsement,WY,59,34,345
+RN,Exam,natl_look,99,83,96206
+RN,Exam,state_min,53,42,237
+RN,Exam,state_max,142,118,11599
+RN,Exam,AR,87,84,1412
+RN,Exam,CA,115,96,10175
+RN,Exam,CO,75,42,2335
+RN,Exam,CT,NA,NA,NA
+RN,Exam,HI,88,84,237
+RN,Exam,IA,81,66,1674
+RN,Exam,IL,142,88,6825
+RN,Exam,IN,100,95,3482
+RN,Exam,KY,96,80,2507
+RN,Exam,LA,NA,NA,NA
+RN,Exam,MA,73,56,3478
+RN,Exam,ME,60,48,838
+RN,Exam,MI,92,73,4746
+RN,Exam,MN,107,83,7058
+RN,Exam,MS,94,92,1784
+RN,Exam,MT,125,97,694
+RN,Exam,NC,86,78,4881
+RN,Exam,NE,84,76,1147
+RN,Exam,NH,57,52,610
+RN,Exam,NJ,99,80,3676
+RN,Exam,NM,53,48,615
+RN,Exam,OH,70,65,9649
+RN,Exam,OK,76,77,1614
+RN,Exam,OR,97,82,1470
+RN,Exam,PA,117,97,6254
+RN,Exam,SC,69,60,2215
+RN,Exam,TN,78,70,3626
+RN,Exam,TX,119,118,11599
+RN,Exam,VA,NA,NA,NA
+RN,Exam,VT,64,50,337
+RN,Exam,WV,92,86,1023
+RN,Exam,WY,64,57,245
