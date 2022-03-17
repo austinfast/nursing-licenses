@@ -58,10 +58,10 @@ California and Virginia provided anonymized records, citing the nurses' privacy,
 
 States responded as follows: 
 
-**Thirty-three boards granted NPR's request**: 
+**Thirty-three boards in 32 states granted NPR's request**: 
 
 * Arkansas
-* California *(provided anonymized records - charged $60.17)*
+* California-RN & LPN boards *(provided anonymized records - charged $60.17)*
 * Colorado 
 * Connecticut
 * Hawaii *(only Feb. 2021 onward because of system migration)*
@@ -112,7 +112,8 @@ States responded as follows:
 * Alaska: Told NPR they have no way to export application dates from their database.
 * Delaware: "A public body in Delaware is not required to construct a record that does not previously exist for the purpose of fulfilling a FOIA request."  
 * District of Columbia: Told NPR they have no way to export application dates from their database.
-* Florida: Initially claimed no responsive records exist. When NPR pointed out annual reports advertise license processing times, the Florida Department of Health charged NPR $150, but has not provided any records to NPR as of March 10, 2022.
+* Florida: Claimed no responsive records exist in December 2021. When NPR pointed out annual reports advertise license processing times, the Florida Department of Health charged NPR $150, but did not provide records to NPR by the publication date of March 10, 2022.
+  + NPR received records on March 15, 2022, and has updated this document to reflect their addition.
 * New York: Withheld application dates as invasion of nurses' privacy. NPR's appeal was denied Jan. 10, 2022.
 * Maryland: Quoted $213 to provide the records, but a recent system hack prevented the board from providing them.
 * Rhode Island: "There are no currently existing records that are responsive to the request."
@@ -860,6 +861,241 @@ ct_state %>%
   count (lic_type, app_type, app_status)
 
 #No duplicate removal necessary
+```
+
+## Import Florida
+https://floridasnursing.gov/licensing/
+```{r}
+fl18_19 <- read_excel("../state-data/FL/BSC_FY18-19_Annual_M1_Detail_1701_1702.xlsx") %>% 
+  clean_names()
+fl19_20 <- read_excel("../state-data/FL/BSC_FY19-20_Annual_M1_Detail_1701_1702.xlsx") %>% 
+  clean_names()
+fl20_21 <- read_excel("../state-data/FL/BSC_FY20-21_Annual_M1_Detail_1701__1702.xlsx") %>% 
+  clean_names()
+fl21_q1 <- read_excel("../state-data/FL/BSC_FY21-22_Q1_M1_Detail_1701_1702.xlsx") %>% 
+  clean_names()
+fl21_q2 <- read_excel("../state-data/FL/BSC_FY21-22_Q2_M1_Detail_1701_1702.xlsx") %>% 
+  clean_names()
+
+fl_state <- rbind (fl18_19, fl19_20, fl20_21, fl21_q1, fl21_q2) %>%
+  mutate (application_date = as.Date(format((app_dte), format="%Y-%m-%d")),
+          issue_date = ymd(lic_issue_dte),
+          fee_paid_date = ymd(fee_pd_dte),
+          month = substr(issue_date, 1,7),
+          year = as.character(year(issue_date)),
+          lic_type = case_when (
+    prof_cde == "1701" ~ "RN",
+    prof_cde == "1702" ~ "LPN"),
+    app_type = case_when (
+      str_detect (tran_desc, "Endorsement") ~ "Endorsement",
+      str_detect (tran_desc, "Re-Exam") ~ "Exam-retest",
+      tran_desc == "Exam Application" ~ "Exam",
+      #Might want to combine 12 Internet Exam Application + 164 military expedited apps
+      TRUE ~ tran_desc)) %>%
+  mutate (process_time2 = issue_date - application_date,
+          diff = process_time2 - days_to_issue#,
+          #docs_time = issue_date - fee_paid_date,
+          #diff2 = docs_time - days_to_issue
+          ) %>%
+  filter (year!="2018") #remove those before Jan. 1, 2019
+
+#Any negatives?
+fl_state %>% 
+  filter (process_time2 < 0) %>%
+  nrow()
+
+#Any NAs?
+fl_state %>% 
+  filter (is.na(process_time2)) %>%
+  nrow()
+
+fl_state %>%
+  count (lic_type, app_type)
+fl_state %>%
+  count (prof_cde, tran_desc)
+
+str(fl_state)
+#Any mismatches?
+fl_state %>% filter (as.Date(lic_issue_dte) != issue_date) %>% nrow()
+fl_state %>% filter (as.Date(app_dte) != application_date) %>% nrow()
+
+#Remove unformatted date fields and unnecessary fields
+fl_state <- fl_state %>%
+  select (-c(app_dte, fee_pd_dte, lic_issue_dte, prof_cde, file_nbr, app_nbr, tran_code, tran_desc, days_to_issue, diff)) %>%
+  rename (name = licensee_name,
+          license_number = lic_nbr) %>%
+  mutate (data_state="FL") 
+          
+#2 duplicates - might be because they issued yearlong military temp license, then regular license
+dupe_numbers <- fl_state %>% 
+  count (license_number) %>%
+  filter (n > 1) 
+#1 NA license_number
+fl_state %>%
+  filter (is.na(license_number))
+
+#Check to see where FL stands
+fl_state %>%
+  group_by (lic_type, app_type, year) %>% #, deficient
+  filter (app_type != "Exam-retest" & lic_type %in% c("RN", "LPN", "RN-Temp", "LPN-Temp")) %>%
+  filter (!(str_detect(year, "^Pending") & (application_date < as.Date("2020-12-31")))) %>%
+  #group_by (year, lic_type, app_type) %>%
+  summarize (mean = round(mean(process_time2, na.rm=T)),
+             median = median (process_time2),
+             count = n(),
+             over30days = sum(process_time2 > 30),
+             pct_over30days = over30days/count,
+             over60days = sum(process_time2 > 60),
+             pct_over60days = over60days/count,
+             over90days = sum(process_time2 > 90),
+             pct_over90days = over90days/count,
+             over120days = sum(process_time2 > 120),
+             pct_over120days = over120days/count,
+             over180days = sum(process_time2 > 180),
+             pct_over180days = over180days/count,
+             over1year = sum(process_time2 > 365),
+             pct_over1year = over1year/count ) %>%
+  filter (year %in% c("2021", "Pending"))
+
+
+fl_state <- fl_state %>%
+  filter (!str_detect(app_type, "^Initial Temporary")) %>% #Removes 16 Florida temps)
+  filter (app_type != "Internet Exam Application") #removes small number of this type
+```
+
+### Confirm FL DOH matched correctly
+Match raw application and license issued datasets to re-create what Florida's Department of Health provided. 
+```{r eval=FALSE}
+#Import FY19-Q3 initial applications (Jan-March 2019)
+fy18_19apps <- read_excel("../state-data/FL/FY18-19/AR_FY_18-19_Q3_Tbl_4_INITIALS_Col_1_INITIAL_APPLICATIONS_RECEIVED_Detail_1701_1702.xlsx") %>%
+  mutate (PROF_CDE = as.character (CLNT_CDE)) %>% 
+  rename (CLNT_ID = AR_CLNT_ID,
+          #PROF_CDE = CLNT_CDE,
+          PROF_DESCRIPTION = CLNT_NME,
+          LICENSEE_NAME = KEY_NME,
+          APP_NBR = APPLC_ID,
+          APP_DTE = APPL_DTE,
+          TRAN_CODE = XACT_CDE,
+          TRAN_DESC = XACT_DESC) %>%
+  select (-c(AR_TABLE, AR_COLUMN, AR_MEASURE, SELECTED_PERIOD, XACT_CLS_CDE, CLNT_CDE))
+#Import FY19-Q3 re-exam applications (Jan-March 2019)
+fy18_19apps_re <- read_excel("../state-data/FL/FY18-19/AR_FY_18-19_Q3_Tbl_4_INITIALS_Col_2_INITIAL_RE-EXAM_APPLICATIONS_RECEIVED_Detail_1701_1702.xlsx") %>%
+  mutate (PROF_CDE = as.character (CLNT_CDE)) %>% 
+  rename (CLNT_ID = AR_CLNT_ID,
+          #PROF_CDE = CLNT_CDE,
+          PROF_DESCRIPTION = CLNT_NME,
+          LICENSEE_NAME = KEY_NME,
+          APP_NBR = APPLC_ID,
+          APP_DTE = APPL_DTE,
+          TRAN_CODE = XACT_CDE,
+          TRAN_DESC = XACT_DESC) %>%
+  select (-c(AR_TABLE, AR_COLUMN, AR_MEASURE, SELECTED_PERIOD, XACT_CLS_CDE, CLNT_CDE))
+
+#Compare columns to see what we can remove and rename.
+compare <- compare_df_cols(fy18_19apps, fy19_20apps)
+
+#Import FY20 initial applications (July 2019-June 2020)
+fy19_20apps <- read_excel("../state-data/FL/FY19-20/AR_FY_19-20_Tbl_4_INITIALS_Col_1_INITIAL_APPLICATIONS_RECEIVED_Detail_1701_1702.xlsx")
+#Import FY20 re-exam applications (July 2019-June 2020)
+fy19_20apps_re <- read_excel("../state-data/FL/FY19-20/AR_FY_19-20_Tbl_4_INITIALS_Col_2_INITIAL_RE-EXAM_APPLICATIONS_RECEIVED_Detail_1701_1702.xlsx")
+
+#Import FY21 initial applications (July 2020-June 2021)
+fy20_21apps <- read_excel("../state-data/FL/FY20-21/AR_FY_20-21_Tbl_4_INITIALS_Col_1_INITIAL_APPLICATIONS_RECEIVED_Detail_1701_1702.xlsx")
+#Import FY20 re-exam applications (July 2020-June 2021)
+fy20_21apps_re <- read_excel("../state-data/FL/FY20-21/AR_FY_20-21_Tbl_4_INITIALS_Col_2_INITIAL_RE-EXAM_APPLICATIONS_RECEIVED_Detail_1701_1702.xlsx")
+
+#Import FY22-Q1 initial applications (July 2021-Sept 2021)
+fy21_22apps_q1 <- read_excel("../state-data/FL/FY21-22Q1/AR_FY_21-22_Q1_Tbl_4_INITIALS_Col_1_INITIAL_APPLICATIONS_RECEIVED_Detail_1701_1702.xlsx")
+#Import FY22-Q1 re-exam applications (July 2021-Sept 2021)
+fy21_22apps_re_q1 <- read_excel("../state-data/FL/FY21-22Q1/AR_FY_21-22_Q1_Tbl_4_INITIALS_Col_2_INITIAL_RE-EXAM_APPLICATIONS_RECEIVED_Detail_1701_1702.xlsx")
+#Import FY22-Q2 initial applications (Oct 2021-Dec 2021)
+fy21_22apps_q2 <- read_excel("../state-data/FL/FY21-22Q2/AR_FY_21-22_Q2_Tbl_4_INITIALS_Col_1_INITIAL_APPLICATIONS_RECEIVED_Detail_1701_1702.xlsx")
+#Import FY22-Q2 re-exam applications (Oct 2021-Dec 2021)
+fy21_22apps_re_q2 <- read_excel("../state-data/FL/FY21-22Q2/AR_FY_21-22_Q2_Tbl_4_INITIALS_Col_2_INITIAL_RE-EXAM_APPLICATIONS_RECEIVED_Detail_1701_1702.xlsx")
+
+#Import FY19-Q3 licenses issued (Jan-March 2019)
+fy18_19iss <- read_excel("../state-data/FL/FY18-19/AR_FY_18-19_Q3_Tbl_4_INITIALS_Col_3_INITIAL_LICENSES_ISSUED_Detail_1701_1702.xlsx") %>%
+  mutate (PROF_CDE = as.character (CLNT_CDE)) %>% 
+  rename (CLNT_ID = AR_CLNT_ID,
+          #PROF_CDE = CLNT_CDE,
+          PROF_DESCRIPTION = CLNT_NME,
+          LICENSEE_NAME = KEY_NME,
+          LIC_ISSUE_DTE = ORIG_DTE,
+          LIC_STAT_DESC = LIC_STA_DESC
+          #APP_NBR = APPLC_ID,
+          #APP_DTE = APPL_DTE,
+          #TRAN_CODE = XACT_CDE,
+          #TRAN_DESC = XACT_DESC
+          ) %>%
+  select (-c(AR_TABLE, AR_COLUMN, AR_MEASURE, SELECTED_PERIOD, CLNT_CDE))
+
+#FL DOH did not provide FY19 Q4 (April-June 2019), apparently in error
+
+#Import FY20 licenses issued (July 2019-June 2020)
+fy19_20iss <- read_excel("../state-data/FL/FY19-20/AR_FY_19-20_Tbl_4_INITIALS_Col_3_INITIAL_LICENSES_ISSUED_Detail_1701_1702.xlsx")
+
+#Import FY21 licenses issued (July 2020-June 2021)
+fy20_21iss <- read_excel("../state-data/FL/FY20-21/AR_FY_20-21_Tbl_4_INITIALS_Col_3_INITIAL_LICENSES_ISSUED_Detail_1701_1702.xlsx")
+#Import FY22-Q1 licenses issued (July 2021-Sept 2021)
+fy21_22iss_q1 <- read_excel("../state-data/FL/FY21-22Q1/AR_FY_21-22_Q1_Tbl_4_INITIALS_Col_3_INITIAL_LICENSES_ISSUED_Detail_1701_1702.xlsx")
+#Import FY22-Q2 licenses issued (Oct 2021-Dec 2021)
+fy21_22iss_q2 <- read_excel("../state-data/FL/FY21-22Q2/AR_FY_21-22_Q2_Tbl_4_INITIALS_Col_3_INITIAL_LICENSES_ISSUED_Detail_1701_1702.xlsx")
+
+#Combine all licenses issued and keep only records that have unique file numbers, which is how FL DOH identifies an individual. This removes any people who were issued more than once just to verify the easy ones.
+all_issued <- bind_rows (fy18_19iss, fy19_20iss, fy20_21iss, fy21_22iss_q1, fy21_22iss_q2) %>%
+  group_by (FILE_NBR) %>%
+  mutate (count = n()) 
+all_issued <- all_issued %>% 
+  filter ( count==1)
+
+#Combine all applications 
+all_apps <- bind_rows (fy18_19apps, fy18_19apps_re, fy19_20apps, fy19_20apps_re, fy20_21apps, fy20_21apps_re, fy21_22apps_q1, fy21_22apps_re_q1, fy21_22apps_q2, fy21_22apps_re_q2) %>%
+  #remove withdrawn applications, which caused unnecessary duplications when joining
+  filter (!(APP_STATUS %in% c("WITHDRAWN", "Withdrawn"))) %>%
+  arrange (FILE_NBR, desc(APP_DTE))
+
+all_apps %>% 
+  count (APP_STATUS)
+
+#13000 people have multiple apps, mostly re-exam apps
+all_apps %>% 
+  group_by (FILE_NBR) %>%
+  mutate (count = n()) %>%
+  filter (count >1) %>%
+  ungroup() %>%
+  count (TRAN_DESC) %>%
+  arrange (desc(n))
+
+#Keep only records that have unique file numbers, which is how FL DOH identifies an individual. This removes any people who have applied more than once just to verify the easy ones.
+all_apps <- all_apps %>%
+  group_by (FILE_NBR) %>%
+  mutate (count = n()) %>% 
+  filter ( count==1)
+
+#Join issued dataframe with the application dataframe by the file number and calculate processing time.
+test_join <- inner_join (all_issued, all_apps, by="FILE_NBR") %>%
+  mutate (issue_date = as.Date (LIC_ISSUE_DTE),
+          application_date = as.Date(APP_DTE)) %>%
+  mutate (process_time = issue_date - application_date)
+
+#Pare down columns
+test_join2 <- test_join %>%
+  select (LICENSEE_NAME.x, FILE_NBR, issue_date, application_date, process_time )
+
+#Keep only people who have one record only.
+fl_state2 <- fl_state %>%
+  group_by (file_nbr) %>%
+  mutate (count = n()) %>% 
+  filter ( count==1)
+
+#Join by file number.
+test_join3 <- left_join (test_join2, fl_state2, by=c("FILE_NBR"="file_nbr"))
+
+#Only 188 processing times don't match, mostly Re-Exam, meaning I think we can trust FL Dept of Health joined correctly and it's fine to use their matched data.
+test_join3 %>% 
+  filter (process_time != process_time2) %>%
+  ungroup() %>%
+  count (tran_desc)
 ```
 
 ## Import Hawaii
@@ -4164,7 +4400,7 @@ rm(list=setdiff(ls(), c("start_time", save_these)))
 This is how I knew what to rename columns in all the import code chunks above. Originally, there were almost 200 unique column names among the 32 states, which have been pared down to 45 columns for our dataset.
 ```{r}
 #Compare columns to know which ones to remove from each state dataframe in code above
-all_data <- compare_df_cols (ar_state, ca_state, co_state, ct_state, hi_state, ia_state, il_state, in_state, ky_state, la_state, ma_state, me_state, mi_state, mn_state, ms_state, mt_state, ne_state, nh_state, nj_state, nm_state, nc_state, oh_state, ok_state, or_state, pa_state, sc_state, tn_state, tx_state, vt_state, va_state, wv_state, wy_state)
+all_data <- compare_df_cols (ar_state, ca_state, co_state, ct_state, fl_state, hi_state, ia_state, il_state, in_state, ky_state, la_state, ma_state, me_state, mi_state, mn_state, ms_state, mt_state, ne_state, nh_state, nj_state, nm_state, nc_state, oh_state, ok_state, or_state, pa_state, sc_state, tn_state, tx_state, vt_state, va_state, wv_state, wy_state)
 
 names <- all_data %>% select (column_name)
 counts <- apply(all_data, MARGIN = 1, function(x) sum(!is.na(x))) %>%
@@ -4177,7 +4413,7 @@ counts2 <- cbind (names, counts)
 #all_data2 %>% filter (!is.na(suffix) & is.na(name)) #2690 people have a suffix
 
 #Join all state dataframes into one frame 
-all_data2 <- bind_rows (ar_state, ca_state, co_state, ct_state, hi_state, ia_state, il_state, in_state, ky_state, la_state, ma_state, me_state, mn_state, mi_state, mn_state, ms_state, mt_state, ne_state, nh_state, nj_state, nm_state, nc_state, oh_state, ok_state, or_state, pa_state, sc_state, tn_state, tx_state, vt_state, va_state, wv_state, wy_state) %>%
+all_data2 <- bind_rows (ar_state, ca_state, co_state, ct_state, fl_state, hi_state, ia_state, il_state, in_state, ky_state, la_state, ma_state, me_state, mn_state, mi_state, mn_state, ms_state, mt_state, ne_state, nh_state, nj_state, nm_state, nc_state, oh_state, ok_state, or_state, pa_state, sc_state, tn_state, tx_state, vt_state, va_state, wv_state, wy_state) %>%
   #Create name column for those without
   mutate (name = case_when (
     is.na(name) & !is.na(suffix) & is.na (middle_name) ~ paste (first_name, last_name, suffix),
@@ -4199,7 +4435,7 @@ all_data2 %>% count (app_type)
 
 How many have negative process times? This happens when the issue date is before the application date.
 
-* 565,797 rows
+* 565,770 rows
 * 98% of these negative times are renewal/reinstatement (555,127)
 ```{r}
 all_data2 %>% 
@@ -4209,13 +4445,13 @@ all_data2 %>%
   #arrange (desc(n))
 ```
 
-25.8% of data is renewals/reinstatements I cannot use because they have negative process times.
+24.3% of data is renewals/reinstatements I cannot use because they have negative process times.
 ```{r}
 nrow(all_data2 %>% filter (process_time2 < 0) %>%
   filter ((str_detect(app_type, "^Renewal")|str_detect(app_type, "^Reinstatement")))) / nrow(all_data2)  
 ```
 
-0.5% of other types has negative process time and cannot be used -- input errors.
+0.5% of other types have negative process time and cannot be used -- input errors.
 ```{r}
 nrow(all_data2 %>% filter (process_time2 < 0) %>%
   filter (!(str_detect(app_type, "^Renewal")|str_detect(app_type, "^Reinstatement")))) / nrow(all_data2)  
@@ -4223,21 +4459,22 @@ nrow(all_data2 %>% filter (process_time2 < 0) %>%
 
 How many process times didn't calculate? (because denied, withdrawn, etc.)
 
-* 44,637 rows
-* 2.1% of data did not calculate due to a missing application date.
+* 44,393 rows
+* 1.9% of data did not calculate due to a missing application date.
 ```{r}
 all_data2 %>% 
   filter (is.na(process_time2)) %>%
   #count (data_state)
   count (lic_type, app_type) %>%
-  arrange (desc(n))
+  arrange (desc(n)) %>%
+  adorn_totals()
 
 nrow(all_data2 %>% filter (is.na(process_time2))) / nrow(all_data2)  
 ```
 
 How much valid data do I have? 
-* 1.53M records (including pending)
-* 1.45M without pending
+* 1.66M records (including pending)
+* 1.55M without pending
 ```{r}
 all_data2 %>% 
   filter (process_time2 > -1) %>% 
@@ -4263,7 +4500,7 @@ all_data2 %>%
 
 # Standardize dataset
 ## Application types
-* Standardize 30 application types to include only:
+* Standardize 30+ application types to include only:
   + exam
   + exam-retest
   + endorsement
@@ -4274,7 +4511,7 @@ all_data2 %>%
   + unknown (all of Connecticut and Virginia's records plus a small number of records in Michigan, Pennsylvania and Colorado).
 * Remove 77 negative processing times, which appear to be board errors.
 ```{r}
-#1,942,314 records for Jan. 1, 2019 - Sept. 23, 2021
+#2,032,084 records for Jan. 1, 2019 - Sept. 23, 2021
 filtered_data <- all_data2 %>%
   filter (application_date <= as.Date("2021-09-23")) %>%
   filter (issue_date <= as.Date("2021-09-23")) %>% 
@@ -4288,8 +4525,8 @@ filtered_data <- all_data2 %>%
     str_detect(app_type, "Endorsement") ~ "Endorsement",
     str_detect(app_type, "Exam-retest") ~ "Exam-retest",
     str_detect(app_type, "Exam") ~ "Exam",
-    app_type %in% c("Foreign Applicant", "Inactive", "SSL to MSL", "International") ~ "Other",
-    TRUE ~ app_type))
+    app_type %in% c("Foreign Applicant", "Inactive", "SSL to MSL", "International", "Military Vet Expedited Initial Licensure") ~ "Other",
+    TRUE ~ app_type)) 
 
 #How many processing times are negative and will be removed? 
 #553214 records
@@ -4297,12 +4534,13 @@ filtered_data %>% filter (process_time2 < 0) %>% nrow()
 
 #Where are these from and what types of applications?
 #Majority are renewals (525793); 
-#3125 are Endorsement 
-#2793 are Exam 
+#3125 are Exam 
+#2787 are Endorsement
 filtered_data %>% filter (process_time2 < 0) %>% count(standard_app_type) %>%
   adorn_totals("row")
 
 #Four application types NPR is analyzing = 226,304 new licenses issued in 2021
+#Adding Florida: 253,694
 filtered_data %>% 
   filter (year=="2021" & standard_app_type %in% c("Exam", "Endorsement", "Other", "Unknown")) %>%
   count(standard_app_type) %>%
@@ -4334,7 +4572,7 @@ nrow(all_data2)-nrow(valid_data)
 
 valid_data %>% count (app_type)
 
-#Standardize 30 app types to simplest version - 8 types
+#Standardize 30+ app types to simplest version - 8 types
 valid_data2 <- valid_data %>% 
   mutate (standard_app_type = case_when(
     str_detect(app_type, "Reinstatement") ~ "Reinstatement",
@@ -4345,7 +4583,7 @@ valid_data2 <- valid_data %>%
     str_detect(app_type, "Endorsement") ~ "Endorsement",
     str_detect(app_type, "Exam-retest") ~ "Exam-retest",
     str_detect(app_type, "Exam") ~ "Exam",
-    app_type %in% c("Foreign Applicant", "Inactive", "SSL to MSL", "International") ~ "Other",
+    app_type %in% c("Foreign Applicant", "Inactive", "SSL to MSL", "International", "Military Vet Expedited Initial Licensure") ~ "Other",
     TRUE ~ app_type))
 
 #Double check standardization
@@ -4386,8 +4624,8 @@ valid_data2 %>%
 ## Timeframe
 Remove data points after Sept. 23, 2021, to standardize the timeframe among all states. This code removes any licenses issued or applications filed after that date.
 
-* Removes 64,239 applications after Sept 23, 2021, when first states sent records
-* Removes 154,981 licenses issued after Sept 23, 2021.
+* Removes 68,848 applications after Sept 23, 2021, when first states sent records
+* Removes licenses issued after Sept 23, 2021.
 
 ```{r} 
 #How many still-pending applications are in full data? >> #96,173 
@@ -4395,7 +4633,7 @@ valid_data %>%
   filter (str_detect (year, "^Pending")) %>%
   nrow()
 
-#Remove any applications after Sept. 23, 2021 >> 64239
+#Remove any applications after Sept. 23, 2021 >> 68848
 valid_data2 <- valid_data2 %>%
   filter (application_date <= as.Date("2021-09-23")) 
 nrow(valid_data)-nrow(valid_data2)
@@ -4414,7 +4652,7 @@ valid_data3 <- valid_data2 %>%
           city = if_else (data_state == "NH", "REDACTED", city),
           state = if_else (data_state == "NH", "REDACTED", state))
 
-#removes 87,425 total records, to end up with 1,459,037 records. Some overlap if nurses applied and were issued after Sept. 23)
+#removes 96357 total records, to end up with 1,548,855 records. Some overlap if nurses applied and were issued after Sept. 23)
 nrow(valid_data)-nrow(valid_data3)
 
 #How many still-pending applications who applied before Sept. 23 remain in this filtered data? >> #70,045, so none were lost
@@ -4425,19 +4663,19 @@ valid_data3 %>%
 
 ## Write to file
 Includes 2019-2021 and still-pending applications submitted after July 2020.
-1.4 million rows x 44 columns, so will be a very large file.
+1.65 million rows x 44 columns, so will be a very large file.
 ```{r}
 #write_csv(valid_data2, "../output/nurse_licenses_all_2019_2021.csv")
 ```
 
 Write dataset of only licenses **issued** from Jan. 1 to Sept. 23, 2021.
 
-* 432,000 rows x 44 columns
+* 462,000 rows x 44 columns
 
 Write dataset of pending license applications 
 
 * Only includes applications submitted after July 2020 that were still pending when their state boards submitted records to NPR.
-* 21 states included pending applicants.
+* 21 states included pending applicants = 70,045 applications.
 
 ```{r}
 valid_data21 <- valid_data3 %>%
@@ -4583,7 +4821,7 @@ state_averages_combined %>%
 **FACT CHECK: How many new licenses in 2021?**
 
 226,225 (excluding re-tests [which skew medians longer], reinstatements, reactivations, etc.)
-
+Adding Florida, increases to 253,615
 ```{r}
 avg_counts <- state_averages %>%
   ungroup() %>%
@@ -4761,6 +4999,12 @@ This code compares new licenses by year only, combining all nurses together to s
 
 Additional details: Over half (57%) the 226,225 RNs and LPNs issued new licenses Jan. 1-Sept. 23, 2021, waited more than two months (129,452 nurses). Over one-third (35%) of nurses (80,056) waited more than 3 months to get a new license issued in 2021.
 
+**NOTE: Florida provided its records on March 15, after publication: It issued 27,390 licenses from Jan. 1-Sept. 23, 2021, with relatively fast medians.**
+
+* Adding Florida increases the sample total from 33 states to 253,615 RNs and LPNs issued new licenses in 2021.
+* Lowers share of nurses waiting more than two months to 54.5%, from 57%. 
+* Lowers share of nurses waiting more than 3 months to 33.4%, from 35.4%
+* Lowers share of nurses waiting more than 6 months to 8.4%, from 8.8%
 ```{r}
 compare_pct <- natl_averages %>%
   filter (lic_type %in% c("LPN", "RN")) %>%
@@ -4787,9 +5031,14 @@ compare_pct[compare_pct$year=="2021", "count"]
 compare_pct[compare_pct$year=="2021", "count_over90days"]
 #What percent of these new nurses' licenses took longer than six months? = 8.8%, "almost one in 10"
 compare_pct[compare_pct$year=="2021", "count_over180days"]
+
+#How many new licenses did Florida issue?
+state_averages %>% filter (data_state=="FL" & year=="2021" & standard_app_type!="Exam-retest") %>% ungroup() %>% summarize (count = sum(count))
 ```
 
 How many nurses waited over six months? 19,924 nurses
+
+* Adding Florida increases this to 21,286 nurses
 ```{r}
 valid_data3 %>% 
   filter (process_time2 > 180) %>%
@@ -4830,6 +5079,16 @@ Count up totals by RN/LPN and application type (includes reinstatement/renewal/r
 * Longer than 90 days: 
   + Exams: 37% of LPNs (8060) and 43% of RNs (41308) took longer than 90 days to process.
   + Endorsement: 32% of LPNs (1938) and 30% of RNs (24950) took longer than 90 days to process.
+  
+**Adding Florida shifts these down, particularly LPNs by endorsement:**
+* Longer than 60 days: 
+  + Exams: 61% of LPNs (14340) and 71% of RNs (75466) took longer than 60 days to process.
+  + Endorsement: 39% of LPNs (2986) and 39% of RNs (38270) took longer than 60 days to process.
+
+* Longer than 90 days: 
+  + Exams: 37% of LPNs (8511) and 41% of RNs (43739) took longer than 90 days to process.
+  + Endorsement: 28% of LPNs (2130) and 27% of RNs (26496) took longer than 90 days to process.
+
 ```{r}
 compare_count2 <- natl_averages %>%
   filter (lic_type %in% c("LPN", "RN")) %>%
@@ -4852,8 +5111,9 @@ rbind (compare_count2, compare_pct2) %>%
   print(n=1e3)
 ```
 
+
 How many states can break out by application type (exam vs. endorsement)? 
-30 states (CT + VA cannot because lumped together)
+31 states (CT + VA cannot because lumped together)
 ```{r}
 state_averages %>%
   filter (lic_type %in% c("LPN", "RN")) %>%
@@ -4881,7 +5141,7 @@ This code looks for endorsement nurses licensed by these 30 states in 2021, as w
 * 105,543 licensed by endorsement in 2021; 
 * 41,343 pending (Jan 2021-Dec 2021) 
 * 146,886, but this is a serious undercount since it only includes 30 states, only through September 2021 for most.
-
+* Adding Florida increases count to at least 167,536 nurses applying by endorsement in 2021.
 ```{r}
 #rerun standardization code to include ALL licensed and pending if state included others after Sept. 23
 endorsement21 <- valid_data %>% 
@@ -5294,7 +5554,7 @@ exam_end4 <- exam_end3 %>%
   full_join (natl_averages3, by = c("lic_type", "standard_app_type", "type")) %>%
   full_join (min, by = c("lic_type", "standard_app_type", "type")) %>%
   full_join (max, by = c("lic_type", "standard_app_type", "type")) %>%
-  select (1:3, natl_look, state_min, state_max, 4:33)
+  select (1:3, natl_look, state_min, state_max, 4:34)
 ```
 
 Calculate by license type only, combining exam, endorsement, other, unknown app types
@@ -5349,7 +5609,7 @@ exam_end_lic_only2 <- exam_end_lic_only %>%
   full_join (min_lic_type, by = c("lic_type", "type")) %>%
   full_join (max_lic_type, by = c("lic_type", "type")) %>%
   mutate (standard_app_type = "All new licenses") %>%
-  select (1:2, standard_app_type, natl_look, state_min, state_max, 3:34)
+  select (1:2, standard_app_type, natl_look, state_min, state_max, 3:35)
 ```
 
 Which states have other/unknown application types, meaning "All new licenses" will be more than sum of Exam+Endorsement?
@@ -5427,7 +5687,7 @@ exam_end_combined2 <- exam_end_combined %>%
   pivot_wider (id_cols = c("type","lic_type", "standard_app_type"),
                names_from = "data_state",
                values_from = "value") %>%
-  select (1:3, natl_look, state_min, state_max, 4:19, 21:30, 33:38)
+  select (1:3, natl_look, state_min, state_max, 4:19, 21:30, 33:39)
 
 for_connie <- rbind (exam_end_combined2, exam_end_lic_only2, exam_end4) %>%
   arrange (lic_type, standard_app_type) %>%
