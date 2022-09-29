@@ -5,6 +5,7 @@ name: scrape_ncsbn
 on:
 #  push:
 #    branches: main
+  workflow_dispatch:
   schedule:
     - cron:  '59 23 * * *'
 
