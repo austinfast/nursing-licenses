@@ -58,6 +58,7 @@ jobs:
       - name: Install dependencies
         run: |
           remotes::install_deps(dependencies = TRUE)
+          install.packages(c("stringi", "tidyverse"))
         shell: Rscript {0}
         
 # Run R script - NCSBN scrape
