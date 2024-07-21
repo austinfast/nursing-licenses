@@ -9,26 +9,25 @@ library(xml2)
 Sys.setenv(TZ="America/Los_Angeles")
 
 #Pull in AzBN numbers
-#removed 7/21/24 -- results in 403 forbidden
-#url <- "https://www.azbn.gov"
+##url <- "https://www.azbn.gov"
 
-#azbn <- read_html (url)
-#azbn2 <- azbn %>%
-#  html_nodes (xpath='//*[@id="block-nursestats-2"]/div/div/div/div')
+##azbn <- read_html (url)
+##azbn2 <- azbn %>%
+##  html_nodes (xpath='//*[@id="block-nursestats-2"]/div/div/div/div')
 
-#azbn2 %>% html_nodes("ul") -> uls
-#az_df <- data.frame()
-#for (ul in uls) {
-#  ul %>% html_text("li") -> text
-#  type = gsub("\\d*,\\d*|\\d*", '', text)
-#  count <- parse_number(text)
-#  tmpdf <- data.frame(type,count) %>%
-#    add_column (archive_date = Sys.Date())
-#  az_df <- rbind(az_df,tmpdf)
-#}
+##azbn2 %>% html_nodes("ul") -> uls
+##az_df <- data.frame()
+##for (ul in uls) {
+##  ul %>% html_text("li") -> text
+##  type = gsub("\\d*,\\d*|\\d*", '', text)
+##  count <- parse_number(text)
+##  tmpdf <- data.frame(type,count) %>%
+##    add_column (archive_date = Sys.Date())
+##  az_df <- rbind(az_df,tmpdf)
+##}
 
 #write AzBN license details
-#write_csv (az_df, paste0("AzBN_scrapes/AzBN_", Sys.Date(), ".csv"))
+##write_csv (az_df, paste0("AzBN_scrapes/AzBN_", Sys.Date(), ".csv"))
 
 #Scrape active nursing license data from National Council of State Boards of Nursing
 
@@ -63,7 +62,6 @@ df_rn <- data.frame(states_rn, counts_rn) %>%
 write_csv(df_rn, paste0("NCSBN_scrapes/RN_scrape_", Sys.Date(), ".csv"))
 
 #Scrape LPN data from https://www.ncsbn.org/6162.htm
-#url2 <- "https://www.ncsbn.org/Aggregate-LPNActiveLicensesMap.html"
 url2 <- "https://www.ncsbn.org/NND/Maps/Aggregate-LPNActiveLicensesMap.html"
 map_lpn <- read_html(url2) %>%
   html_text()
