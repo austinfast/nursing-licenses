@@ -58,8 +58,8 @@ jobs:
       - name: Install dependencies
         run: |
           remotes::install_deps(dependencies = TRUE)
-          install.packages(c("stringi", "ragg"))
-          install.packages('tidyverse', dependencies = TRUE, verbose = TRUE)
+          #install.packages(c("stringi", "ragg"))
+          #install.packages('tidyverse', dependencies = TRUE, verbose = TRUE)
           # install.packages(c("stringi", "ragg", "tidyverse"))
         shell: Rscript {0}
         
