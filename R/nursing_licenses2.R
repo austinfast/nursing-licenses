@@ -1,9 +1,12 @@
-library(tidyverse)
+#library(tidyverse)
 library(janitor)
 library(httr)
 library(rvest)
 library(lubridate)
 library(xml2)
+library(stringr)
+library(dplyr)
+library(readr)
 
 #Set time zone to save files with correct date
 Sys.setenv(TZ="America/Los_Angeles")
