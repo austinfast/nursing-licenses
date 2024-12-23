@@ -17,7 +17,7 @@ jobs:
       - name: setup python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.7' # install the python version needed #3.9.9 #3.7.7
+          python-version: '3.8' # install the python version needed #3.9.9 (was 3.7 til 12/23/24)
           
       - name: install python packages
         run: |
